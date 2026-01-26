@@ -13,6 +13,22 @@ datasource db {
   provider = "postgresql"
 }
 
+// Enums
+enum TeamMemberRole {
+  LEAD
+  MEMBER
+}
+
+enum RoleName {
+  ADMIN
+  JUDGE
+  MENTOR
+  PARTICIPANT
+}
+
+
+
+// Better Auth Models
 model User {
   id            String    @id
   name          String
@@ -21,8 +37,18 @@ model User {
   image         String?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
+  
+  // Better Auth relations
   sessions      Session[]
   accounts      Account[]
+  
+  // Application relations
+  teamMemberships    TeamMember[]
+  userRoles          UserRole[]
+  judgeAssignments   JudgeAssignment[]
+  evaluations        Evaluation[]
+  announcements      Announcement[]
+  mentorFeedbacks    MentorFeedback[]
 
   @@unique([email])
   @@map("user")
@@ -74,4 +100,174 @@ model Verification {
 
   @@index([identifier])
   @@map("verification")
+}
+
+// Application Models
+
+// Team - Hackathon team
+model Team {
+  id        String   @id @default(cuid())
+  name      String
+  track     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  members           TeamMember[]
+  judgeAssignments  JudgeAssignment[]
+  evaluations       Evaluation[]
+  mentorFeedbacks   MentorFeedback[]
+
+  @@map("team")
+}
+
+// TeamMember - Junction table for team membership
+model TeamMember {
+  id        String         @id @default(cuid())
+  userId    String
+  teamId    String
+  role      TeamMemberRole
+  createdAt DateTime       @default(now())
+  
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, teamId])
+  @@index([userId])
+  @@index([teamId])
+  @@map("team_member")
+}
+
+// Role - System-wide roles
+model Role {
+  id   String   @id @default(cuid())
+  name RoleName @unique
+  
+  userRoles UserRole[]
+
+  @@map("role")
+}
+
+// UserRole - Junction table for user roles
+model UserRole {
+  id        String   @id @default(cuid())
+  userId    String
+  roleId    String
+  createdAt DateTime @default(now())
+  
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, roleId])
+  @@index([userId])
+  @@index([roleId])
+  @@map("user_role")
+}
+
+// JudgeAssignment - Which judge evaluates which team
+model JudgeAssignment {
+  id        String   @id @default(cuid())
+  judgeId   String
+  teamId    String
+  createdAt DateTime @default(now())
+  
+  judge User @relation(fields: [judgeId], references: [id], onDelete: Cascade)
+  team  Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  @@unique([judgeId, teamId])
+  @@index([judgeId])
+  @@index([teamId])
+  @@map("judge_assignment")
+}
+
+// EvaluationCriterion - Data-driven evaluation criteria
+model EvaluationCriterion {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  subject     String
+  description String
+  fullMark    Int
+  order       Int
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  
+  scores EvaluationScore[]
+
+  @@map("evaluation_criterion")
+}
+
+// Evaluation - One evaluation submission
+model Evaluation {
+  id                  String    @id @default(cuid())
+  judgeId             String
+  teamId              String
+  submittedAt         DateTime?
+  extraPoints         Int       @default(0)
+  extraJustification  String?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+  
+  judge  User               @relation(fields: [judgeId], references: [id], onDelete: Cascade)
+  team   Team               @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  scores EvaluationScore[]
+
+  @@unique([judgeId, teamId])
+  @@index([judgeId])
+  @@index([teamId])
+  @@map("evaluation")
+}
+
+// EvaluationScore - Individual criterion scores
+model EvaluationScore {
+  id           String   @id @default(cuid())
+  evaluationId String
+  criterionId  String
+  score        Int
+  
+  evaluation Evaluation          @relation(fields: [evaluationId], references: [id], onDelete: Cascade)
+  criterion  EvaluationCriterion @relation(fields: [criterionId], references: [id], onDelete: Restrict)
+
+  @@unique([evaluationId, criterionId])
+  @@index([evaluationId])
+  @@index([criterionId])
+  @@map("evaluation_score")
+}
+
+// Announcement - System announcements
+model Announcement {
+  id        String   @id @default(cuid())
+  title     String
+  content   String
+  createdBy String
+  createdAt DateTime @default(now())
+  
+  creator User @relation(fields: [createdBy], references: [id], onDelete: Cascade)
+
+  @@index([createdBy])
+  @@map("announcement")
+}
+
+// MentorFeedback - Mentor feedback for teams (private)
+model MentorFeedback {
+  id        String   @id @default(cuid())
+  mentorId  String
+  teamId    String
+  content   String
+  createdAt DateTime @default(now())
+  
+  mentor User @relation(fields: [mentorId], references: [id], onDelete: Cascade)
+  team   Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  @@index([mentorId])
+  @@index([teamId])
+  @@map("mentor_feedback")
+}
+
+// SeedMeta - Track Excel seeding history
+model SeedMeta {
+  id         String   @id @default(cuid())
+  sourceFile String
+  seededAt   DateTime @default(now())
+  seededBy   String
+  
+  @@map("seed_meta")
 }
