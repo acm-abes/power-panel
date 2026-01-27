@@ -70,8 +70,17 @@ async function seedAdminUser() {
     where: { name: "ADMIN" },
   });
 
+  const participantRole = await prisma.role.findUnique({
+    where: { name: "PARTICIPANT" },
+  });
+
   if (!adminRole) {
     console.log(`⚠ ADMIN role not found. Skipping admin assignment.`);
+    return;
+  }
+
+  if (!participantRole) {
+    console.log(`⚠ PARTICIPANT role not found. Skipping admin assignment.`);
     return;
   }
 
@@ -85,9 +94,29 @@ async function seedAdminUser() {
     },
   });
 
+  const existingParticipantRole = await prisma.userRole.findUnique({
+    where: {
+      userId_roleId: {
+        userId: user.id,
+        roleId: participantRole.id,
+      },
+    },
+  });
+
   if (existingUserRole) {
     console.log(`✓ User ${adminEmail} already has ADMIN role`);
     return;
+  }
+
+  if (!existingParticipantRole) {
+    // Assign participant role if not already assigned
+    await prisma.userRole.create({
+      data: {
+        userId: user.id,
+        roleId: participantRole.id,
+      },
+    });
+    console.log(`✓ Assigned PARTICIPANT role to ${adminEmail}`);
   }
 
   // Assign admin role
