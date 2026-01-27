@@ -6,6 +6,7 @@ import { getUserRoles } from "@/lib/get-user-roles";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { UserManagementTable } from "@/components/user-management-table";
+import { Page, PageHeading, PageContent } from "@/components/page";
 
 export default async function AdminUsersPage() {
   const session = await auth.api.getSession({
@@ -44,18 +45,17 @@ export default async function AdminUsersPage() {
   });
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold">User Management</h1>
-        <p className="text-muted-foreground mt-2">
-          Assign and manage user roles
-        </p>
-      </div>
-
-      <UserManagementTable
-        users={users}
-        availableRoles={roles.map((r) => r.name)}
+    <Page>
+      <PageHeading
+        title="User Management"
+        description="Assign and manage user roles"
       />
-    </div>
+      <PageContent>
+        <UserManagementTable
+          users={users}
+          availableRoles={roles.map((r) => r.name)}
+        />
+      </PageContent>
+    </Page>
   );
 }
