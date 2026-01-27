@@ -14,6 +14,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { headers } from "next/headers";
+import { Page, PageContent, PageHeading } from "@/components/page";
 
 export default async function MyTeamPage() {
   const session = await auth.api.getSession({
