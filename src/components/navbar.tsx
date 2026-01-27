@@ -1,25 +1,21 @@
 /** @format */
 
-"use client";
-
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { useSession, signOut } from "@/lib/auth-client";
-import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
-import { useUserRoles } from "@/hooks/use-user-roles";
+import { auth } from "@/lib/auth";
+import { getUserRoles } from "@/lib/get-user-roles";
+import { headers } from "next/headers";
+import { NavLinks } from "./nav-links";
+import { UserMenu } from "./user-menu";
 
-export function Navbar() {
-  const pathname = usePathname();
-  const { data: session } = useSession();
-  const { userRoles, isAdmin, isJudge, isMentor, isParticipant } =
-    useUserRoles();
+export async function Navbar() {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
 
   if (!session) return null;
 
-  const handleSignOut = async () => {
-    await signOut();
-  };
+  const { userRoles, isAdmin, isJudge, isMentor, isParticipant } =
+    await getUserRoles(session.user.id);
 
   return (
     <nav className="border-b bg-card">
@@ -30,114 +26,18 @@ export function Navbar() {
               SAH Admin
             </Link>
 
-            <div className="flex items-center gap-4">
-              <Link
-                href="/"
-                className={cn(
-                  "text-sm font-medium transition-colors hover:text-primary",
-                  pathname === "/"
-                    ? "text-foreground"
-                    : "text-muted-foreground",
-                )}
-              >
-                Dashboard
-              </Link>
-
-              {isJudge && (
-                <Link
-                  href="/judges/evaluate"
-                  className={cn(
-                    "text-sm font-medium transition-colors hover:text-primary",
-                    pathname === "/judges/evaluate"
-                      ? "text-foreground"
-                      : "text-muted-foreground",
-                  )}
-                >
-                  Evaluate
-                </Link>
-              )}
-
-              {isAdmin && (
-                <>
-                  <Link
-                    href="/admin/teams"
-                    className={cn(
-                      "text-sm font-medium transition-colors hover:text-primary",
-                      pathname === "/admin/teams"
-                        ? "text-foreground"
-                        : "text-muted-foreground",
-                    )}
-                  >
-                    Teams
-                  </Link>
-                  <Link
-                    href="/admin/judges"
-                    className={cn(
-                      "text-sm font-medium transition-colors hover:text-primary",
-                      pathname === "/admin/judges"
-                        ? "text-foreground"
-                        : "text-muted-foreground",
-                    )}
-                  >
-                    Judges
-                  </Link>
-                  <Link
-                    href="/admin/results"
-                    className={cn(
-                      "text-sm font-medium transition-colors hover:text-primary",
-                      pathname === "/admin/results"
-                        ? "text-foreground"
-                        : "text-muted-foreground",
-                    )}
-                  >
-                    Results
-                  </Link>
-                </>
-              )}
-
-              {isMentor && (
-                <Link
-                  href="/mentors/feedback"
-                  className={cn(
-                    "text-sm font-medium transition-colors hover:text-primary",
-                    pathname === "/mentors/feedback"
-                      ? "text-foreground"
-                      : "text-muted-foreground",
-                  )}
-                >
-                  Give Feedback
-                </Link>
-              )}
-
-              {isParticipant && (
-                <Link
-                  href="/teams/my-team"
-                  className={cn(
-                    "text-sm font-medium transition-colors hover:text-primary",
-                    pathname === "/teams/my-team"
-                      ? "text-foreground"
-                      : "text-muted-foreground",
-                  )}
-                >
-                  My Team
-                </Link>
-              )}
-            </div>
+            <NavLinks
+              isAdmin={isAdmin}
+              isJudge={isJudge}
+              isMentor={isMentor}
+              isParticipant={isParticipant}
+            />
           </div>
 
-          <div className="flex items-center gap-4">
-            <div className="flex flex-col items-end">
-              <span className="text-sm font-medium">{session.user.name}</span>
-              {userRoles.length > 0 && (
-                <span className="text-xs text-muted-foreground">
-                  {userRoles.join(", ")}
-                </span>
-              )}
-            </div>
-            <Button variant="ghost" size="sm" onClick={handleSignOut}>
-              Sign Out
-            </Button>
-          </div>
+          <UserMenu
+            userName={session.user.name || "User"}
+            userRoles={userRoles}
+          />
         </div>
       </div>
     </nav>

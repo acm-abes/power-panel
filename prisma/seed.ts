@@ -48,10 +48,64 @@ async function seedRoles() {
   console.log("✓ Roles seeding complete!");
 }
 
+async function seedAdminUser() {
+  console.log("Assigning admin role to user...");
+
+  const adminEmail = "kunalranarj2005@gmail.com";
+
+  // Find the user
+  const user = await prisma.user.findUnique({
+    where: { email: adminEmail },
+  });
+
+  if (!user) {
+    console.log(
+      `⚠ User with email ${adminEmail} not found. Skipping admin assignment.`,
+    );
+    return;
+  }
+
+  // Find the ADMIN role
+  const adminRole = await prisma.role.findUnique({
+    where: { name: "ADMIN" },
+  });
+
+  if (!adminRole) {
+    console.log(`⚠ ADMIN role not found. Skipping admin assignment.`);
+    return;
+  }
+
+  // Check if user already has admin role
+  const existingUserRole = await prisma.userRole.findUnique({
+    where: {
+      userId_roleId: {
+        userId: user.id,
+        roleId: adminRole.id,
+      },
+    },
+  });
+
+  if (existingUserRole) {
+    console.log(`✓ User ${adminEmail} already has ADMIN role`);
+    return;
+  }
+
+  // Assign admin role
+  await prisma.userRole.create({
+    data: {
+      userId: user.id,
+      roleId: adminRole.id,
+    },
+  });
+
+  console.log(`✓ Assigned ADMIN role to ${adminEmail}`);
+}
+
 async function main() {
   try {
     await seedRoles();
     await seedCriteria();
+    await seedAdminUser();
     console.log("\n🎉 Database seeded successfully!");
   } catch (error) {
     console.error("Error seeding database:", error);

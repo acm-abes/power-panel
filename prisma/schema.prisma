@@ -262,6 +262,25 @@ model MentorFeedback {
   @@map("mentor_feedback")
 }
 
+model TempTeamData {
+  id        String   @id @default(cuid())
+  name      String
+  track     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@map("temp_team_data")
+}
+
+model TempTeamMembers {
+  id        String   @id @default(cuid())
+  userEmail String
+  teamId   String
+  createdAt DateTime @default(now())
+  
+  @@map("temp_team_members")
+}
+
 // SeedMeta - Track Excel seeding history
 model SeedMeta {
   id         String   @id @default(cuid())
