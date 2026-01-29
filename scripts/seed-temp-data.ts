@@ -35,7 +35,7 @@ async function seedTempData() {
 
   try {
     // Read CSV file using Bun's native file API
-    const file = Bun.file("data/sah-20_registrations.csv");
+    const file = Bun.file("data/sah_20.csv");
     const csvContent = await file.text();
 
     // Parse CSV
@@ -46,11 +46,6 @@ async function seedTempData() {
     }) as CSVRow[];
 
     console.log(`📊 Found ${records.length} records in CSV`);
-
-    // Clear existing temp data
-    console.log("🗑️  Clearing existing temp data...");
-    await prisma.tempTeamMembers.deleteMany();
-    await prisma.tempTeamData.deleteMany();
 
     // Group records by team
     const teamMap = new Map<string, CSVRow[]>();
@@ -64,37 +59,63 @@ async function seedTempData() {
 
     console.log(`👥 Found ${teamMap.size} unique teams`);
 
-    // Create teams and members
-    let teamCount = 0;
-    let memberCount = 0;
+    // Create/update teams and members
+    let teamsCreated = 0;
+    let teamsUpdated = 0;
+    let membersCreated = 0;
+    let membersSkipped = 0;
 
     for (const [teamName, members] of teamMap) {
-      // Create team
-      const team = await prisma.tempTeamData.create({
-        data: {
-          name: teamName,
-          track: null, // Track info not in CSV
-        },
+      // Find or create team
+      let team = await prisma.tempTeamData.findFirst({
+        where: { name: teamName },
       });
 
-      teamCount++;
-
-      // Create team members
-      for (const member of members) {
-        await prisma.tempTeamMembers.create({
+      if (!team) {
+        team = await prisma.tempTeamData.create({
           data: {
-            userEmail: member["User Email"],
-            teamId: team.id,
+            name: teamName,
+            track: null, // Track info not in CSV
           },
         });
+        teamsCreated++;
+      } else {
+        teamsUpdated++;
+      }
 
-        memberCount++;
+      // Get existing members for this team
+      const existingMembers = await prisma.tempTeamMembers.findMany({
+        where: { teamId: team.id },
+        select: { userEmail: true },
+      });
+
+      const existingEmails = new Set(
+        existingMembers.map((m) => m.userEmail.toLowerCase()),
+      );
+
+      // Create only new team members
+      for (const member of members) {
+        const memberEmail = member["User Email"].toLowerCase();
+
+        if (!existingEmails.has(memberEmail)) {
+          await prisma.tempTeamMembers.create({
+            data: {
+              userEmail: member["User Email"],
+              teamId: team.id,
+            },
+          });
+          membersCreated++;
+        } else {
+          membersSkipped++;
+        }
       }
     }
 
     console.log(`✅ Successfully seeded:`);
-    console.log(`   - ${teamCount} teams`);
-    console.log(`   - ${memberCount} team members`);
+    console.log(`   - ${teamsCreated} teams created`);
+    console.log(`   - ${teamsUpdated} teams already existed`);
+    console.log(`   - ${membersCreated} new members added`);
+    console.log(`   - ${membersSkipped} members already existed`);
   } catch (error) {
     console.error("❌ Error seeding temp data:", error);
     throw error;
