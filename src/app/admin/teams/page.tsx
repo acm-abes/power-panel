@@ -95,7 +95,7 @@ export default async function PendingTeamsPage() {
                     </div>
                   </AccordionTrigger>
                   <AccordionContent>
-                    <div className="space-y-2 pl-8 pr-4">
+                    <div className="pl-8 pr-4 space-y-1">
                       {team.members.length === 0 ? (
                         <div className="text-sm text-muted-foreground py-2">
                           No members found
@@ -104,9 +104,9 @@ export default async function PendingTeamsPage() {
                         team.members.map((member) => (
                           <div
                             key={member.id}
-                            className={`flex items-center justify-between p-3 rounded-md border transition-colors ${
+                            className={`flex items-center justify-between p-3 border-l-5 transition-colors ${
                               member.hasSignedIn
-                                ? "bg-green-50 border-green-200"
+                                ? "bg-green-50 border-green-200 border-y border-r"
                                 : "bg-gray-50 border-gray-200"
                             }`}
                           >
