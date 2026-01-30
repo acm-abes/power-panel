@@ -108,6 +108,7 @@ model Verification {
 model Team {
   id        String   @id @default(cuid())
   name      String
+  teamCode  String   @unique
   track     String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -265,6 +266,7 @@ model MentorFeedback {
 model TempTeamData {
   id        String   @id @default(cuid())
   name      String
+  teamCode  String   @unique
   track     String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -279,6 +281,42 @@ model TempTeamMembers {
   createdAt DateTime @default(now())
   
   @@map("temp_team_members")
+}
+
+// Analytics - User data for statistics and analytics
+model Analytics {
+  id                   String   @id @default(cuid())
+  serialNo             String
+  teamName             String
+  teamCode             String
+  userName             String
+  userEmail            String
+  position             String
+  status               String
+  submitted            String
+  joinedAt             String
+  firstName            String
+  lastName             String
+  phoneNumber          String
+  degreeType           String
+  educationLevel       String
+  graduationYear       String
+  collegeName          String
+  skills               String?
+  githubUsername       String?
+  portfolioUrl         String?
+  bio                  String?
+  hackathonExperience  String?
+  interestedRoles      String?
+  dietaryRestrictions  String?
+  tshirtSize           String?
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+  
+  @@unique([serialNo])
+  @@index([teamCode])
+  @@index([userEmail])
+  @@map("analytics")
 }
 
 // SeedMeta - Track Excel seeding history

@@ -47,14 +47,14 @@ async function seedTempData() {
 
     console.log(`📊 Found ${records.length} records in CSV`);
 
-    // Group records by team
+    // Group records by team code (unique identifier)
     const teamMap = new Map<string, CSVRow[]>();
     for (const record of records) {
-      const teamName = record["Team Name"];
-      if (!teamMap.has(teamName)) {
-        teamMap.set(teamName, []);
+      const teamCode = record["Team Code"];
+      if (!teamMap.has(teamCode)) {
+        teamMap.set(teamCode, []);
       }
-      teamMap.get(teamName)!.push(record);
+      teamMap.get(teamCode)!.push(record);
     }
 
     console.log(`👥 Found ${teamMap.size} unique teams`);
@@ -64,17 +64,22 @@ async function seedTempData() {
     let teamsUpdated = 0;
     let membersCreated = 0;
     let membersSkipped = 0;
+    let analyticsCreated = 0;
 
-    for (const [teamName, members] of teamMap) {
-      // Find or create team
-      let team = await prisma.tempTeamData.findFirst({
-        where: { name: teamName },
+    for (const [teamCode, members] of teamMap) {
+      // Get team name from first member
+      const teamName = members[0]["Team Name"];
+
+      // Find or create team by teamCode (unique identifier)
+      let team = await prisma.tempTeamData.findUnique({
+        where: { teamCode },
       });
 
       if (!team) {
         team = await prisma.tempTeamData.create({
           data: {
             name: teamName,
+            teamCode: teamCode,
             track: null, // Track info not in CSV
           },
         });
@@ -93,7 +98,7 @@ async function seedTempData() {
         existingMembers.map((m) => m.userEmail.toLowerCase()),
       );
 
-      // Create only new team members
+      // Create only new team members and analytics records
       for (const member of members) {
         const memberEmail = member["User Email"].toLowerCase();
 
@@ -108,6 +113,43 @@ async function seedTempData() {
         } else {
           membersSkipped++;
         }
+
+        // Insert analytics data (for all members, even if already in temp table)
+        const existingAnalytics = await prisma.analytics.findUnique({
+          where: { serialNo: member["Serial No."] },
+        });
+
+        if (!existingAnalytics) {
+          await prisma.analytics.create({
+            data: {
+              serialNo: member["Serial No."],
+              teamName: member["Team Name"],
+              teamCode: member["Team Code"],
+              userName: member["User Name"],
+              userEmail: member["User Email"],
+              position: member["Position"],
+              status: member["Status"],
+              submitted: member["Submitted"],
+              joinedAt: member["Joined At"],
+              firstName: member["First Name"],
+              lastName: member["Last Name"],
+              phoneNumber: member["Phone Number"],
+              degreeType: member["Degree Type"],
+              educationLevel: member["Education Level"],
+              graduationYear: member["Graduation Year"],
+              collegeName: member["College Name"],
+              skills: member["Skills"] || null,
+              githubUsername: member["GitHub Username"] || null,
+              portfolioUrl: member["Portfolio URL"] || null,
+              bio: member["Bio"] || null,
+              hackathonExperience: member["Hackathon Experience"] || null,
+              interestedRoles: member["Interested Roles"] || null,
+              dietaryRestrictions: member["Dietary Restrictions"] || null,
+              tshirtSize: member["T-Shirt Size"] || null,
+            },
+          });
+          analyticsCreated++;
+        }
       }
     }
 
@@ -116,6 +158,7 @@ async function seedTempData() {
     console.log(`   - ${teamsUpdated} teams already existed`);
     console.log(`   - ${membersCreated} new members added`);
     console.log(`   - ${membersSkipped} members already existed`);
+    console.log(`   - ${analyticsCreated} analytics records created`);
   } catch (error) {
     console.error("❌ Error seeding temp data:", error);
     throw error;

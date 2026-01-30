@@ -1,4 +1,58 @@
--- CreateFunction: Auto-map user to team from temp data
+-- AlterTable: Add teamCode to team table
+ALTER TABLE "team" ADD COLUMN "teamCode" TEXT;
+
+-- Create unique index on team.teamCode
+CREATE UNIQUE INDEX "team_teamCode_key" ON "team"("teamCode");
+
+-- AlterTable: Add teamCode to temp_team_data table
+ALTER TABLE "temp_team_data" ADD COLUMN "teamCode" TEXT;
+
+-- Create unique index on temp_team_data.teamCode  
+CREATE UNIQUE INDEX "temp_team_data_teamCode_key" ON "temp_team_data"("teamCode");
+
+-- CreateTable: Analytics table for user data statistics
+CREATE TABLE "analytics" (
+    "id" TEXT NOT NULL,
+    "serialNo" TEXT NOT NULL,
+    "teamName" TEXT NOT NULL,
+    "teamCode" TEXT NOT NULL,
+    "userName" TEXT NOT NULL,
+    "userEmail" TEXT NOT NULL,
+    "position" TEXT NOT NULL,
+    "status" TEXT NOT NULL,
+    "submitted" TEXT NOT NULL,
+    "joinedAt" TEXT NOT NULL,
+    "firstName" TEXT NOT NULL,
+    "lastName" TEXT NOT NULL,
+    "phoneNumber" TEXT NOT NULL,
+    "degreeType" TEXT NOT NULL,
+    "educationLevel" TEXT NOT NULL,
+    "graduationYear" TEXT NOT NULL,
+    "collegeName" TEXT NOT NULL,
+    "skills" TEXT,
+    "githubUsername" TEXT,
+    "portfolioUrl" TEXT,
+    "bio" TEXT,
+    "hackathonExperience" TEXT,
+    "interestedRoles" TEXT,
+    "dietaryRestrictions" TEXT,
+    "tshirtSize" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "analytics_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateIndex
+CREATE UNIQUE INDEX "analytics_serialNo_key" ON "analytics"("serialNo");
+
+-- CreateIndex
+CREATE INDEX "analytics_teamCode_idx" ON "analytics"("teamCode");
+
+-- CreateIndex
+CREATE INDEX "analytics_userEmail_idx" ON "analytics"("userEmail");
+
+-- Update the trigger function to include teamCode
 CREATE OR REPLACE FUNCTION auto_map_user_to_team()
 RETURNS TRIGGER AS $$
 DECLARE
@@ -77,13 +131,3 @@ BEGIN
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
-
--- CreateTrigger: Trigger on user insert
-CREATE TRIGGER trigger_auto_map_user_to_team
-    AFTER INSERT ON "user"
-    FOR EACH ROW
-    EXECUTE FUNCTION auto_map_user_to_team();
-
--- Add comment for documentation
-COMMENT ON FUNCTION auto_map_user_to_team() IS 
-'Automatically maps newly created users to teams based on temp_team_members data. Creates teams from temp_team_data if they don''t exist yet. Also assigns PARTICIPANT role to the user.';
