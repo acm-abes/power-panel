@@ -23,7 +23,7 @@ export async function Navbar() {
         <div className="flex h-16 items-center justify-between">
           <div className="flex items-center gap-8">
             <Link href="/" className="text-lg font-semibold hover:text-primary">
-              SAH Admin
+              SAH Power Panel
             </Link>
 
             <NavLinks
