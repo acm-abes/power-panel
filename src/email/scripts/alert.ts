@@ -42,7 +42,7 @@ const generateEmailHTML = (
     <div style="max-width:600px;margin:0 auto;padding:20px">
         <div style="background:#1a1a2e;padding:20px;text-align:center">
             <h1 style="color:#00d4ff;margin:0">Smart ABES Hackathon 2.0</h1>
-            <p style="color:#aaa;margin:5px 0 0 0">Let's see whose algorithm wins the rhythm</p>
+            <p style="color:#aaa;margin:5px 0 0 0">Let's see whose Algorithm wins the Rhythm</p>
         </div>
        
            
@@ -60,7 +60,7 @@ const generateEmailHTML = (
            
             <br><b>📅 Important Dates:</b>
             <ul>
-                <li><b>Team Completion Deadline:</b> 5th February 2026</li>
+                <li><b>Team Completion Deadline:</b> 1st February 2026</li>
                 <li><b>Round 1 Evaluation:</b> 14-15 February 2026</li>
                 <li><b>Mentoring Phase:</b> 16-27 February 2026</li>
                 <li><b>Grand Finale:</b> 28 February 2026 @ ABES EC</li>
@@ -72,11 +72,16 @@ const generateEmailHTML = (
                 Members: ${teamData.membersInTeam}/4
             </div>
            
-            <p>For any queries, refer to our <b><a href="https://smartabeshackathon.tech/contacts">contact page</a></b></p>
+            <div>
+              <p>
+              For any queries, refer to our <b><a href="https://smartabeshackathon.tech/contacts">contact page</a></b>
+              <br/>or<br/>
+              Mail us at <b><a href="mailto:organizer@smartabeshackathon.tech">organizer@smartabeshackathon.tech</a></b></p>
+              <p>If you want us to pair you with someone else, mail us at <b><a href="mailto:support@smartabeshackathon.tech">support@smartabeshackathon.tech</a></b></p>
+            </div>
            
             <p>Best Regards,<br>
             <strong>SAH 2.0 Organizing Committee</strong><br>
-            ABES ACM | ABES ACM-W | SSCBS ACM | GGSIPU ACM</p>
         </div>
        
         <div style="background:#1a1a2e;padding:10px;text-align:center">
