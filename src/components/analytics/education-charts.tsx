@@ -29,6 +29,7 @@ export function EducationCharts({
   const chartConfig = {
     count: {
       label: "Count",
+      color: "hsl(var(--chart-1))",
     },
   };
 
@@ -43,7 +44,7 @@ export function EducationCharts({
           <CardDescription>Distribution by education level</CardDescription>
         </CardHeader>
         <CardContent>
-          <ChartContainer config={chartConfig} className="h-[300px] w-full">
+          <ChartContainer config={chartConfig} className="h-75 w-full">
             <PieChart>
               <ChartTooltip content={<ChartTooltipContent />} />
               <Pie
@@ -52,7 +53,9 @@ export function EducationCharts({
                 nameKey="level"
                 cx="50%"
                 cy="50%"
-                label={(entry) => `${entry.level}: ${entry.count}`}
+                label={(entry) =>
+                  `${entry.payload.level}: ${entry.payload.count}`
+                }
               >
                 {educationLevelData.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={entry.fill} />
@@ -72,7 +75,7 @@ export function EducationCharts({
           <CardDescription>Distribution by degree type</CardDescription>
         </CardHeader>
         <CardContent>
-          <ChartContainer config={chartConfig} className="h-[300px] w-full">
+          <ChartContainer config={chartConfig} className="h-75 w-full">
             <PieChart>
               <ChartTooltip content={<ChartTooltipContent />} />
               <Pie
@@ -81,7 +84,9 @@ export function EducationCharts({
                 nameKey="degree"
                 cx="50%"
                 cy="50%"
-                label={(entry) => `${entry.degree}: ${entry.count}`}
+                label={(entry) =>
+                  `${entry.payload.degree}: ${entry.payload.count}`
+                }
               >
                 {degreeTypeData.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={entry.fill} />

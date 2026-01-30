@@ -24,6 +24,7 @@ export function TeamSizeChart({ data }: TeamSizeChartProps) {
   const chartConfig = {
     count: {
       label: "Count",
+      color: "hsl(var(--chart-1))",
     },
   };
 

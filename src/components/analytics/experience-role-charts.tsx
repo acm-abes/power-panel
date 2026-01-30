@@ -29,6 +29,7 @@ export function ExperienceRoleCharts({
   const chartConfig = {
     count: {
       label: "Count",
+      color: "hsl(var(--chart-1))",
     },
   };
 

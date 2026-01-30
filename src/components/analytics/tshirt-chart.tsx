@@ -25,6 +25,7 @@ export function TshirtChart({ data }: TshirtChartProps) {
   const chartConfig = {
     count: {
       label: "Count",
+      color: "hsl(var(--chart-1))",
     },
   };
 
@@ -47,7 +48,7 @@ export function TshirtChart({ data }: TshirtChartProps) {
               nameKey="size"
               cx="50%"
               cy="50%"
-              label={(entry) => `${entry.size}: ${entry.count}`}
+              label={(entry) => `${entry.payload.size}: ${entry.payload.count}`}
             >
               {data.map((entry, index) => (
                 <Cell key={`cell-${index}`} fill={entry.fill} />

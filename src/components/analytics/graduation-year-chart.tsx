@@ -25,6 +25,7 @@ export function GraduationYearChart({ data }: GraduationYearChartProps) {
   const chartConfig = {
     count: {
       label: "Count",
+      color: "hsl(var(--chart-1))",
     },
   };
 

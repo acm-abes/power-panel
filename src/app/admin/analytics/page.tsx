@@ -43,10 +43,10 @@ export default async function AnalyticsPage() {
   // Prepare chart data
   const graduationYearChartData = Object.entries(stats.graduationYears)
     .sort(([a], [b]) => a.localeCompare(b))
-    .map(([year, count]) => ({
+    .map(([year, count], index) => ({
       year,
       count,
-      fill: `hsl(var(--chart-${(parseInt(year) % 5) + 1}))`,
+      fill: `var(--color-chart-${(index % 5) + 1})`,
     }));
 
   const educationLevelChartData = Object.entries(stats.educationLevels)
@@ -54,7 +54,7 @@ export default async function AnalyticsPage() {
     .map(([level, count], index) => ({
       level: level.replace("_", " "),
       count,
-      fill: `hsl(var(--chart-${(index % 5) + 1}))`,
+      fill: `var(--color-chart-${(index % 5) + 1})`,
     }));
 
   const degreeTypeChartData = Object.entries(stats.degreeTypes)
@@ -62,7 +62,7 @@ export default async function AnalyticsPage() {
     .map(([degree, count], index) => ({
       degree: degree.replace("_", " "),
       count,
-      fill: `hsl(var(--chart-${(index % 5) + 1}))`,
+      fill: `var(--color-chart-${(index % 5) + 1})`,
     }));
 
   const hackathonExpChartData = Object.entries(stats.hackathonExp)
@@ -70,7 +70,7 @@ export default async function AnalyticsPage() {
     .map(([exp, count], index) => ({
       experience: exp.replace(/_/g, " "),
       count,
-      fill: `hsl(var(--chart-${(index % 5) + 1}))`,
+      fill: `var(--color-chart-${(index % 5) + 1})`,
     }));
 
   const interestedRolesChartData = Object.entries(stats.interestedRoles)
@@ -78,15 +78,15 @@ export default async function AnalyticsPage() {
     .map(([role, count], index) => ({
       role: role.replace(/_/g, " "),
       count,
-      fill: `hsl(var(--chart-${(index % 5) + 1}))`,
+      fill: `var(--color-chart-${(index % 5) + 1})`,
     }));
 
   const teamSizeChartData = Object.entries(stats.teamSizeDistribution)
     .sort(([a], [b]) => Number(a) - Number(b))
-    .map(([size, count]) => ({
+    .map(([size, count], index) => ({
       size: `${size} member${Number(size) !== 1 ? "s" : ""}`,
       count,
-      fill: `hsl(var(--chart-${(parseInt(size) % 5) + 1}))`,
+      fill: `var(--color-chart-${(index % 5) + 1})`,
     }));
 
   const tshirtChartData = Object.entries(stats.tshirtSizes)
@@ -97,7 +97,7 @@ export default async function AnalyticsPage() {
     .map(([size, count], index) => ({
       size,
       count,
-      fill: `hsl(var(--chart-${(index % 5) + 1}))`,
+      fill: `var(--color-chart-${(index % 5) + 1})`,
     }));
 
   return (
