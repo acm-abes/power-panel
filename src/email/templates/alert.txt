@@ -1,0 +1,136 @@
+
+
+Smart ABES Hackathon 2.0
+
+Multi-Chapter Collaborative Hackathon
+
+Dear *Kunal Rana*,
+
+Greetings from SAH 2.0 Organizing Team!
+
+Thank you for registering for *Smart ABES Hackathon 2.0*. We're excited to
+have your team on board!
+
+*=F0=9F=93=85 Important Dates:*
+
+   - *Registration Deadline:* 13th February 2026
+   - *PPT Submission Deadline:* 14th February 2026
+   - *PPT Round:* 14-15 February 2026
+   - *Expert Review:* 15-16 February 2026
+   - *Mentoring Phase:* 16-27 February 2026
+   - *Grand Finale:* 28 February 2026 @ ABES EC
+
+
+*=F0=9F=93=8E PPT Requirements:*
+
+   - Problem Statement Understanding
+   - Proposed Solution Architecture
+   - Tech Stack & DSA/Algorithm Approach
+   - Team Capabilities & Roles
+
+*Your Team Details:*
+Team Name: Full Squad Pending
+Team Code: TEST006
+Members: 4/4
+=E2=9A=A0=EF=B8=8F *Action Required:* Your team has 4 members but registrat=
+ion is not yet
+submitted.
+Please go to your Devfolio dashboard and click *"Submit Registration"*
+before 13th February 2026.
+
+For any queries, contact us at *sah@abes.ac.in <sah@abes.ac.in>*
+
+Best Regards,
+*SAH 2.0 Organizing Committee*
+ABES ACM | ABES ACM-W | SSCBS ACM | GGSIPU ACM
+
+Smart ABES Hackathon 2.0 | February 2026
+
+--0000000000004d7f6606498b2ae5
+Content-Type: text/html; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+
+<div dir=3D"ltr"><br>FYI<br>Something like this but the exclamation=C2=A0an=
+d pointer part to be on top=C2=A0<br><br>Thanks<div>Aashutosh Jha</div><div=
+>Data Engineer II<br>Insight | Insight Enterprises | Insight</div><div><br>=
+<div class=3D"gmail_quote gmail_quote_container"><div dir=3D"ltr" class=3D"=
+gmail_attr">---------- Forwarded message ---------<br>From: <span dir=3D"au=
+to">&lt;<a href=3D"mailto:aashutoshjha21022002@gmail.com">aashutoshjha21022=
+002@gmail.com</a>&gt;</span><br>Date: Sun, 25 Jan 2026 at 06:31<br>Subject:=
+ SAH 2.0 | Full Squad Pending - Registration Status Update<br>To:  &lt;<a h=
+ref=3D"mailto:kunalrana@acm.org">kunalrana@acm.org</a>&gt;<br>Cc:  &lt;<a h=
+ref=3D"mailto:aashutosh21022002@gmail.com">aashutosh21022002@gmail.com</a>&=
+gt;,  &lt;<a href=3D"mailto:aashu21022002@gmail.com">aashu21022002@gmail.co=
+m</a>&gt;,  &lt;<a href=3D"mailto:parshvij@acm.org">parshvij@acm.org</a>&gt=
+;<br></div><br><br>
+
+<div style=3D"font-family:Arial,sans-serif;line-height:1.6;color:#333">
+    <div style=3D"max-width:600px;margin:0 auto;padding:20px">
+        <div style=3D"background:#1a1a2e;padding:20px;text-align:center">
+            <h1 style=3D"color:#00d4ff;margin:0">Smart ABES Hackathon 2.0</=
+h1>
+            <p style=3D"color:#aaa;margin:5px 0 0 0">Multi-Chapter Collabor=
+ative Hackathon</p>
+        </div>
+       =20
+        <div style=3D"padding:20px;background:#f9f9f9">
+            <p>Dear <strong>Kunal Rana</strong>,</p>
+           =20
+            <p>Greetings from SAH 2.0 Organizing Team!</p>
+           =20
+            <p>Thank you for registering for <b>Smart ABES Hackathon 2.0</b=
+>. We&#39;re excited to have your team on board!</p>
+           =20
+            <br><b>=F0=9F=93=85 Important Dates:</b>
+            <ul>
+                <li><b>Registration Deadline:</b> 13th February 2026</li>
+                <li><b>PPT Submission Deadline:</b> 14th February 2026</li>
+                <li><b>PPT Round:</b> 14-15 February 2026</li>
+                <li><b>Expert Review:</b> 15-16 February 2026</li>
+                <li><b>Mentoring Phase:</b> 16-27 February 2026</li>
+                <li><b>Grand Finale:</b> 28 February 2026 @ ABES EC</li>
+            </ul>
+           =20
+            <br><b>=F0=9F=93=8E PPT Requirements:</b>
+            <ul>
+                <li>Problem Statement Understanding</li>
+                <li>Proposed Solution Architecture</li>
+                <li>Tech Stack &amp; DSA/Algorithm Approach</li>
+                <li>Team Capabilities &amp; Roles</li>
+            </ul>
+           =20
+            <div style=3D"background:#e8f4f8;padding:15px;border-left:4px s=
+olid #00d4ff;margin:20px 0">
+                <strong>Your Team Details:</strong><br>
+                Team Name: Full Squad Pending<br>
+                Team Code: TEST006<br>
+                Members: 4/4
+            </div>
+           =20
+           =20
+<div style=3D"background:#fff3cd;padding:15px;border-left:4px solid #ffc107=
+;margin:20px 0">
+    =E2=9A=A0=EF=B8=8F <b>Action Required:</b> Your team has 4 members but =
+registration is not yet submitted.<br>
+    Please go to your Devfolio dashboard and click <b>&quot;Submit Registra=
+tion&quot;</b> before 13th February 2026.
+</div>
+
+           =20
+            <p>For any queries, contact us at <b><a href=3D"mailto:sah@abes=
+.ac.in" target=3D"_blank">sah@abes.ac.in</a></b></p>
+           =20
+            <p>Best Regards,<br>
+            <strong>SAH 2.0 Organizing Committee</strong><br>
+            ABES ACM | ABES ACM-W | SSCBS ACM | GGSIPU ACM</p>
+        </div>
+       =20
+        <div style=3D"background:#1a1a2e;padding:10px;text-align:center">
+            <p style=3D"color:#888;font-size:12px;margin:0">
+                Smart ABES Hackathon 2.0 | February 2026
+            </p>
+        </div>
+    </div>
+</div>
+
+</div></div></div>

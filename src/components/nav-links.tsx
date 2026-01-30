@@ -104,6 +104,17 @@ export function NavLinks({
           >
             Analytics
           </Link>
+          <Link
+            href="/admin/email"
+            className={cn(
+              "text-sm font-medium transition-colors hover:text-primary",
+              pathname === "/admin/email"
+                ? "text-foreground"
+                : "text-muted-foreground",
+            )}
+          >
+            Email
+          </Link>
         </>
       )}
 
