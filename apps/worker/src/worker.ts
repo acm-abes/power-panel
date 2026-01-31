@@ -6,41 +6,64 @@ import { EMAIL_QUEUE, SendEmailJob } from "@power/queue";
 import { connection } from "./redis";
 import { sendMail } from "./mailer";
 import { prisma } from "@power/db";
+import { generateEmailContent } from "./templates";
 
-console.log("📨 Email worker starting...");
+console.log("📨 SAH 2.0 Email Worker starting...");
+console.log("📧 Email provider: Resend");
+console.log("🔄 Concurrency: 5 emails at a time");
+console.log("");
 
 const worker = new Worker<SendEmailJob>(
   EMAIL_QUEUE,
   async (job) => {
-    const { to, subject, html, campaignId, userId } = job.data;
+    const { to, recipientName, userId, template, templateData, campaignId } =
+      job.data;
 
-    console.log(`➡️ Sending to ${to}`);
+    console.log(`[${template}] ➡️ Sending to ${recipientName} <${to}>`);
 
-    const result = await sendMail({ to, subject, html });
+    try {
+      // Generate email content based on template
+      const { subject, html } = generateEmailContent(
+        template,
+        recipientName,
+        templateData,
+      );
 
-    await prisma.emailJob.create({
-      data: {
-        campaignId,
-        userId,
-        email: to,
-        status: "SENT",
-        providerId: result.data?.id ?? null,
-      },
-    });
+      // Send via Resend
+      const result = await sendMail({ to, subject, html });
 
-    console.log(`✅ Sent to ${to}`);
+      // Track in database
+      await prisma.emailJob.create({
+        data: {
+          campaignId,
+          userId,
+          email: to,
+          status: "SENT",
+          providerId: result.data?.id ?? null,
+        },
+      });
+
+      console.log(`[${template}] ✅ Sent to ${to}`);
+    } catch (error) {
+      console.error(`[${template}] ❌ Failed to send to ${to}:`, error);
+      throw error;
+    }
   },
   {
     connection,
-    concurrency: 5, // rate limit = your spam shield
+    concurrency: 5, // SAH 2.0: 5 emails at a time to respect rate limits
   },
 );
 
 worker.on("failed", async (job, err) => {
   if (!job) return;
 
-  console.error(`❌ Failed ${job.data.to}`, err.message);
+  console.error(
+    `[${job.data.template}] ❌ Failed for ${job.data.to}:`,
+    err.message,
+  );
 
+  // Track failure in database
   await prisma.emailJob.create({
     data: {
       campaignId: job.data.campaignId,
@@ -52,9 +75,15 @@ worker.on("failed", async (job, err) => {
   });
 });
 
+worker.on("completed", (job) => {
+  console.log(`[${job.data.template}] ✨ Completed job ${job.id}`);
+});
+
 process.on("SIGTERM", async () => {
-  console.log("🛑 Worker shutting down...");
+  console.log("");
+  console.log("🛑 SAH 2.0 Worker shutting down gracefully...");
   await worker.close();
   await prisma.$disconnect();
+  console.log("👋 Worker stopped");
   process.exit(0);
 });

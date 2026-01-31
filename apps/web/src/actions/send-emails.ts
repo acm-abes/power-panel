@@ -18,83 +18,6 @@ export type EmailListOption =
   | "CUSTOM";
 
 /**
- * Generate HTML email for incomplete team alert
- */
-function generateIncompleteTeamEmailHTML(
-  memberName: string,
-  teamName: string,
-  teamCode: string,
-  membersInTeam: number,
-) {
-  return `<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <style>
-        body { margin: 0; padding: 0; font-family: Arial, sans-serif; }
-        .container { max-width: 600px; margin: 0 auto; }
-    </style>
-</head>
-<body>
-<div style="font-family:Arial,sans-serif;line-height:1.6;color:#333">
-    <div style="max-width:600px;margin:0 auto;padding:20px">
-        <div style="background:#1a1a2e;padding:20px;text-align:center">
-            <h1 style="color:#00d4ff;margin:0">Smart ABES Hackathon 2.0</h1>
-            <p style="color:#aaa;margin:5px 0 0 0">Let's see whose Algorithm wins the Rhythm</p>
-        </div>
-       
-<div style="background:#fff3cd;padding:15px;border-left:4px solid #ffc107;">
-    ⚠️ <b>Action Required:</b> Your team has ${membersInTeam} members but registration is not yet submitted.<br>
-    Please go to your Devfolio dashboard and click <b>"Submit Registration"</b> before 13th February 2026.
-</div>
-
-        <div style="padding:20px;background:#f9f9f9">
-            <p>Dear <strong>${memberName}</strong>,</p>
-           
-            <p>Greetings from SAH 2.0 Organizing Team!</p>
-           
-            <p>Thank you for registering for <b>Smart ABES Hackathon 2.0</b>. We're excited to have your team on board!</p>
-           
-            <br><b>📅 Important Dates:</b>
-            <ul>
-                <li><b>Team Completion Deadline:</b> 1st February 2026</li>
-                <li><b>Round 1 Evaluation:</b> 14-15 February 2026</li>
-                <li><b>Mentoring Phase:</b> 16-27 February 2026</li>
-                <li><b>Grand Finale:</b> 28 February 2026 @ ABES EC</li>
-            </ul>
-           
-            <div style="background:#e8f4f8;padding:15px;border-left:4px solid #00d4ff;margin:20px 0">
-                <strong>Your Team Details:</strong><br>
-                Team Name: ${teamName}<br>
-                Team Code: ${teamCode}<br>
-                Members: ${membersInTeam}/4
-            </div>
-           
-            <div>
-              <p>
-              For any queries, refer to our <b><a href="https://smartabeshackathon.tech/contacts">contact page</a></b>
-              <br/>or<br/>
-              Mail us at <b><a href="mailto:organizer@smartabeshackathon.tech">organizer@smartabeshackathon.tech</a></b></p>
-              <p>If you want us to pair you with someone else, mail us at <b><a href="mailto:support@smartabeshackathon.tech">support@smartabeshackathon.tech</a></b></p>
-            </div>
-           
-            <p>Best Regards,<br>
-            <strong>SAH 2.0 Organizing Committee</strong><br>
-        </div>
-       
-        <div style="background:#1a1a2e;padding:10px;text-align:center">
-            <p style="color:#888;font-size:12px;margin:0">
-                Smart ABES Hackathon 2.0 | February 2026
-            </p>
-        </div>
-    </div>
-</div>
-</body>
-</html>`;
-}
-
-/**
  * Get emails based on a predefined list option
  */
 export async function getEmailsByOption(option: EmailListOption) {
@@ -400,110 +323,91 @@ export async function sendEmails(emails: string[], preset: EmailPreset) {
         // Create a campaign ID for tracking
         const campaignId = randomUUID();
 
-        // Fetch team details and recipient info
+        // Get user IDs for tracking (create default if not found)
+        const users = await prisma.user.findMany({
+          where: { email: { in: emails } },
+          select: { id: true, email: true },
+        });
+        const userIdMap = new Map(users.map((u) => [u.email, u.id]));
+
+        // Get team and recipient data (best effort)
         const tempMembers = await prisma.tempTeamMembers.findMany({
-          where: {
-            userEmail: { in: emails },
-          },
+          where: { userEmail: { in: emails } },
         });
 
-        if (tempMembers.length === 0) {
-          return {
-            success: false,
-            error: "No team members found for the provided emails",
-            sent: 0,
-            failed: 0,
-          };
-        }
-
-        // Get unique team IDs
         const teamIds = [...new Set(tempMembers.map((m) => m.teamId))];
-
-        // Get team data for template
         const teams = await prisma.tempTeamData.findMany({
-          where: {
-            id: {
-              in: teamIds,
-            },
-          },
+          where: { id: { in: teamIds } },
         });
 
-        // Get all members for these teams
         const allMembers = await prisma.tempTeamMembers.findMany({
-          where: {
-            teamId: {
-              in: teamIds,
-            },
-          },
+          where: { teamId: { in: teamIds } },
         });
 
-        // Group members by team
         const membersByTeam = allMembers.reduce(
           (acc, member) => {
-            if (!acc[member.teamId]) {
-              acc[member.teamId] = [];
-            }
+            if (!acc[member.teamId]) acc[member.teamId] = [];
             acc[member.teamId].push(member.userEmail);
             return acc;
           },
           {} as Record<string, string[]>,
         );
 
-        // Get recipient details (name + email)
         const recipientDetails = await prisma.analytics.findMany({
           where: { userEmail: { in: emails } },
           select: { userEmail: true, userName: true },
         });
-
-        // Get user IDs for the email jobs
-        const users = await prisma.user.findMany({
-          where: { email: { in: emails } },
-          select: { id: true, email: true },
-        });
-
-        const userIdMap = new Map(users.map((u) => [u.email, u.id]));
         const recipientMap = new Map(
           recipientDetails.map((r) => [r.userEmail, r.userName]),
         );
 
-        // Enqueue email jobs for each recipient
-        const emailJobs = [];
-        for (const member of tempMembers) {
-          const team = teams.find((t) => t.id === member.teamId);
-          if (!team) continue;
+        // Queue job for EVERY email provided, no filtering
+        let jobCount = 0;
 
-          const userId = userIdMap.get(member.userEmail);
-          if (!userId) continue;
+        for (const email of emails) {
+          const userId = userIdMap.get(email);
+          if (!userId) {
+            console.warn(`No user ID found for ${email}, skipping`);
+            continue;
+          }
 
-          const memberName = recipientMap.get(member.userEmail) || "Participant";
-          const membersInTeam = membersByTeam[team.id]?.length || 0;
+          const recipientName = recipientMap.get(email) || "Participant";
+          const member = tempMembers.find((m) => m.userEmail === email);
+          const team = member
+            ? teams.find((t) => t.id === member.teamId)
+            : null;
 
-          const html = generateIncompleteTeamEmailHTML(
-            memberName,
-            team.teamName,
-            team.teamCode,
-            membersInTeam,
-          );
+          // Use team data if available, otherwise use defaults
+          const templateData = team
+            ? {
+                teamName: team.name,
+                teamCode: team.teamCode,
+                membersInTeam: membersByTeam[team.id]?.length || 1,
+              }
+            : {
+                teamName: "Your Team",
+                teamCode: "N/A",
+                membersInTeam: 1,
+              };
 
-          emailJobs.push(
-            emailQueue.enqueue({
-              to: member.userEmail,
-              subject: `SAH 2.0 | ${team.teamName} - Registration Status Update`,
-              html,
-              campaignId,
-              userId,
-            }),
-          );
+          // Enqueue without any restrictions
+          emailQueue.enqueue({
+            to: email,
+            recipientName,
+            userId,
+            template: "INCOMPLETE_TEAM",
+            templateData,
+            campaignId,
+          });
+
+          jobCount++;
         }
-
-        // Wait for all jobs to be enqueued
-        await Promise.all(emailJobs);
 
         return {
           success: true,
-          sent: emailJobs.length,
+          sent: jobCount,
           failed: 0,
-          message: `Queued ${emailJobs.length} emails for delivery`,
+          message: `Queued ${jobCount} emails for delivery`,
         };
       }
 
