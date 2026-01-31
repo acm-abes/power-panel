@@ -57,8 +57,10 @@
     "apps/worker": {
       "name": "worker",
       "dependencies": {
+        "@power/db": "workspace:*",
         "@power/queue": "workspace:*",
         "bullmq": "^5.67.2",
+        "dotenv": "^17.2.3",
         "ioredis": "^5.9.2",
         "resend": "^6.9.1",
       },
