@@ -6,6 +6,9 @@
   "prisma": {
     "schema": "prisma/schema.prisma"
   },
+  "scripts": {
+    "generate": "bunx prisma generate"
+  },
   "devDependencies": {
     "@types/node": "^25.1.0"
   },
