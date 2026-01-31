@@ -32,18 +32,25 @@ const worker = new Worker<SendEmailJob>(
       // Send via Resend
       const result = await sendMail({ to, subject, html });
 
-      // Track in database
-      await prisma.emailJob.create({
-        data: {
-          campaignId,
-          userId,
-          email: to,
-          status: "SENT",
-          providerId: result.data?.id ?? null,
-        },
-      });
+      // Track in database (skip if user doesn't exist)
+      try {
+        await prisma.emailJob.create({
+          data: {
+            campaignId,
+            userId,
+            email: to,
+            status: "SENT",
+            providerId: result.data?.id ?? null,
+          },
+        });
+      } catch (dbError: any) {
+        // Log but don't fail if tracking fails (e.g., user doesn't exist)
+        console.warn(
+          `[${template}] ⚠️ Could not track email for ${to}: ${dbError.code}`,
+        );
+      }
 
-      console.log(`[${template}] ✅ Sent to ${to}`);
+      console.log(`[${template}] [${Date.now()}] ✅ Sent to ${to}`);
     } catch (error) {
       console.error(`[${template}] ❌ Failed to send to ${to}:`, error);
       throw error;
@@ -51,7 +58,7 @@ const worker = new Worker<SendEmailJob>(
   },
   {
     connection,
-    concurrency: 5, // SAH 2.0: 5 emails at a time to respect rate limits
+    concurrency: 2, // SAH 2.0: 5 emails at a time to respect rate limits
   },
 );
 
@@ -63,16 +70,22 @@ worker.on("failed", async (job, err) => {
     err.message,
   );
 
-  // Track failure in database
-  await prisma.emailJob.create({
-    data: {
-      campaignId: job.data.campaignId,
-      userId: job.data.userId,
-      email: job.data.to,
-      status: "FAILED",
-      error: err.message,
-    },
-  });
+  // Try to track failure in database (but don't fail if user doesn't exist)
+  try {
+    await prisma.emailJob.create({
+      data: {
+        campaignId: job.data.campaignId,
+        userId: job.data.userId,
+        email: job.data.to,
+        status: "FAILED",
+        error: err.message,
+      },
+    });
+  } catch (dbError: any) {
+    console.warn(
+      `[${job.data.template}] ⚠️ Could not track failed email for ${job.data.to}: ${dbError.code}`,
+    );
+  }
 });
 
 worker.on("completed", (job) => {

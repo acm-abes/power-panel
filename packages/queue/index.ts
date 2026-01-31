@@ -9,7 +9,8 @@ export type EmailTemplate =
   | "INCOMPLETE_TEAM"
   | "WELCOME"
   | "REMINDER"
-  | "ANNOUNCEMENT";
+  | "ANNOUNCEMENT"
+  | "INAUGURATION_INVITE";
 
 // Email job for SAH 2.0 Hackathon
 export type SendEmailJob = {
@@ -26,7 +27,8 @@ export type SendEmailJob = {
     | IncompleteTeamData
     | WelcomeData
     | ReminderData
-    | AnnouncementData;
+    | AnnouncementData
+    | InaugurationInviteData;
 
   // Tracking
   campaignId: string;
@@ -52,6 +54,12 @@ export type ReminderData = {
 export type AnnouncementData = {
   title: string;
   message: string;
+};
+
+export type InaugurationInviteData = {
+  eventDate: string;
+  eventTime: string;
+  venue: string;
 };
 
 export function createEmailQueue(connection: IORedis) {

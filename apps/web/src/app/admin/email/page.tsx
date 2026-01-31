@@ -278,6 +278,9 @@ export default function SendEmailPage() {
                     <SelectItem value="INCOMPLETE_TEAM">
                       Incomplete Team Alert
                     </SelectItem>
+                    <SelectItem value="INAUGURATION_INVITE">
+                      Inauguration Invite
+                    </SelectItem>
                     <SelectItem value="CUSTOM" disabled>
                       Custom Email (Coming Soon)
                     </SelectItem>
@@ -294,6 +297,30 @@ export default function SendEmailPage() {
                       <li>Shows current team size</li>
                       <li>Includes action required notice</li>
                       <li>Contains important dates</li>
+                    </ul>
+                  </div>
+                )}
+
+                {selectedPreset === "INAUGURATION_INVITE" && (
+                  <div className="text-sm text-muted-foreground space-y-2">
+                    <p className="font-medium">Template Info:</p>
+                    <ul className="list-disc list-inside space-y-1">
+                      <li>Official invitation to inauguration</li>
+                      <li>Includes event date, time & venue</li>
+                      <li>Personalized with team name</li>
+                      <li>Professional format</li>
+                    </ul>
+                  </div>
+                )}
+
+                {selectedPreset === "INAUGURATION_INVITE" && (
+                  <div className="text-sm text-muted-foreground space-y-2">
+                    <p className="font-medium">Template Info:</p>
+                    <ul className="list-disc list-inside space-y-1">
+                      <li>Official invitation to inauguration</li>
+                      <li>Includes event date, time & venue</li>
+                      <li>Personalized with team name</li>
+                      <li>Professional format</li>
                     </ul>
                   </div>
                 )}

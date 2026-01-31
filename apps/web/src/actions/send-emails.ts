@@ -6,7 +6,7 @@ import { prisma } from "@power/db";
 import { emailQueue } from "@/lib/queue";
 import { randomUUID } from "crypto";
 
-export type EmailPreset = "INCOMPLETE_TEAM" | "CUSTOM";
+export type EmailPreset = "INCOMPLETE_TEAM" | "INAUGURATION_INVITE" | "CUSTOM";
 
 export type EmailListOption =
   | "TEAM_SIZE_1"
@@ -408,6 +408,70 @@ export async function sendEmails(emails: string[], preset: EmailPreset) {
           sent: jobCount,
           failed: 0,
           message: `Queued ${jobCount} emails for delivery`,
+        };
+      }
+
+      case "INAUGURATION_INVITE": {
+        // Create a campaign ID for tracking
+        const campaignId = randomUUID();
+
+        // Try to get names from user table first
+        const users = await prisma.user.findMany({
+          where: { email: { in: emails } },
+          select: { id: true, email: true, name: true },
+        });
+        const userMap = new Map(
+          users.map((u) => [u.email, { id: u.id, name: u.name }]),
+        );
+
+        // For emails not in user table, try analytics table
+        const missingEmails = emails.filter((e) => !userMap.has(e));
+        if (missingEmails.length > 0) {
+          const analyticsUsers = await prisma.analytics.findMany({
+            where: { userEmail: { in: missingEmails } },
+            select: { userEmail: true, userName: true },
+          });
+
+          for (const au of analyticsUsers) {
+            // Use a placeholder ID since analytics doesn't have user.id
+            userMap.set(au.userEmail, {
+              id: `analytics-${au.userEmail}`,
+              name: au.userName,
+            });
+          }
+        }
+
+        let jobCount = 0;
+
+        for (const email of emails) {
+          const user = userMap.get(email);
+
+          // Use "there" as fallback if no name found
+          const recipientName = user?.name || "there";
+          const userId = user?.id || `unknown-${email}`;
+
+          // Simple invitation - no team details needed
+          emailQueue.enqueue({
+            to: email,
+            recipientName,
+            userId: userId,
+            template: "INAUGURATION_INVITE",
+            templateData: {
+              eventDate: "1st February 2026",
+              eventTime: "9:00 AM onwards",
+              venue: "YouTube",
+            },
+            campaignId,
+          });
+
+          jobCount++;
+        }
+
+        return {
+          success: true,
+          sent: jobCount,
+          failed: 0,
+          message: `Queued ${jobCount} inauguration invites for delivery`,
         };
       }
 

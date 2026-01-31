@@ -6,6 +6,7 @@ import type {
   WelcomeData,
   ReminderData,
   AnnouncementData,
+  InaugurationInviteData,
 } from "@power/queue";
 
 /**
@@ -20,7 +21,8 @@ export function generateEmailContent(
     | IncompleteTeamData
     | WelcomeData
     | ReminderData
-    | AnnouncementData,
+    | AnnouncementData
+    | InaugurationInviteData,
 ): { subject: string; html: string } {
   switch (template) {
     case "INCOMPLETE_TEAM":
@@ -36,6 +38,11 @@ export function generateEmailContent(
       return generateAnnouncementEmail(
         recipientName,
         templateData as AnnouncementData,
+      );
+    case "INAUGURATION_INVITE":
+      return generateInaugurationInviteEmail(
+        recipientName,
+        templateData as InaugurationInviteData,
       );
     default:
       throw new Error(`Unknown email template: ${template}`);
@@ -251,6 +258,66 @@ function generateAnnouncementEmail(
             <div style="background:#e8f4f8;padding:15px;border-left:4px solid #00d4ff;margin:20px 0">
                 ${data.message}
             </div>
+            
+            <p>Best Regards,<br>
+            <strong>SAH 2.0 Organizing Committee</strong></p>
+        </div>
+        
+        ${getEmailFooter()}
+    </div>
+</div>
+</body>
+</html>`;
+
+  return { subject, html };
+}
+
+/**
+ * Template 5: Inauguration Invite
+ */
+function generateInaugurationInviteEmail(
+  recipientName: string,
+  data: InaugurationInviteData,
+): { subject: string; html: string } {
+  const subject = "SAH 2.0 - Inauguration Ceremony Invitation";
+
+  const html = `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+<div style="font-family:Arial,sans-serif;line-height:1.6;color:#333">
+    <div style="max-width:600px;margin:0 auto;padding:20px">
+        ${getEmailHeader()}
+        
+        <div style="padding:20px;background:#f9f9f9">
+            <p>Hi! <strong>${recipientName}</strong>,</p>
+            
+            <p>We are delighted to invite you to the <b>Inauguration Ceremony</b> of Smart ABES Hackathon 2.0!</p>
+            
+            <div style="background:#e8f4f8;padding:20px;border-left:4px solid #00d4ff;margin:20px 0;text-align:center">
+                <h3 style="color:#00d4ff;margin:0 0 15px 0">🎉 Inauguration Ceremony</h3>
+                <p style="margin:8px 0"><strong>📅 Date:</strong> ${data.eventDate}</p>
+                <p style="margin:8px 0"><strong>🕐 Time:</strong> ${data.eventTime}</p>
+                <p style="margin:8px 0"><strong>📍 Venue:</strong> ${data.venue}</p>
+            </div>
+            
+            <p>The inauguration will mark the official beginning of this exciting journey where innovation meets collaboration. Join us for:</p>
+            
+            <ul style="line-height:1.8">
+                <li>Welcome address by dignitaries</li>
+                <li>Overview of hackathon schedule and rules</li>
+                <li>Keynote sessions</li>
+                <li>Networking opportunities</li>
+            </ul>
+            
+            <div style="background:#fff3cd;padding:15px;border-left:4px solid #ffc107;margin:20px 0">
+                ⚠️ <b>Note:</b> Please arrive 15 minutes early for registration and seating.
+            </div>
+            
+            <p>We look forward to seeing you there!</p>
             
             <p>Best Regards,<br>
             <strong>SAH 2.0 Organizing Committee</strong></p>

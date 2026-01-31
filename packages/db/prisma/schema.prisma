@@ -52,7 +52,6 @@ model User {
   evaluations        Evaluation[]
   announcements      Announcement[]
   mentorFeedbacks    MentorFeedback[]
-  emailJobs          EmailJob[]
 
   @@unique([email])
   @@map("user")
@@ -277,8 +276,6 @@ model EmailJob {
   providerId String?
   error      String?
   createdAt  DateTime       @default(now())
-  
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([campaignId])
   @@index([userId])
