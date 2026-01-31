@@ -6,6 +6,7 @@ import { useState } from "react";
 import { useEmailSender } from "@/hooks/use-email-sender";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Card,
   CardContent,
@@ -46,10 +47,18 @@ export default function SendEmailPage() {
     emails,
     selectedPreset,
     isPending,
+    customCc,
+    customBcc,
+    customSubject,
+    customHtml,
     addEmail,
     removeEmail,
     clearEmails,
     setSelectedPreset,
+    setCustomCc,
+    setCustomBcc,
+    setCustomSubject,
+    setCustomHtml,
     loadEmailsByOption,
     loadIncompleteTeamsEmails,
     sendEmailsToList,
@@ -281,9 +290,7 @@ export default function SendEmailPage() {
                     <SelectItem value="INAUGURATION_INVITE">
                       Inauguration Invite
                     </SelectItem>
-                    <SelectItem value="CUSTOM" disabled>
-                      Custom Email (Coming Soon)
-                    </SelectItem>
+                    <SelectItem value="CUSTOM">Custom HTML Email</SelectItem>
                   </SelectContent>
                 </Select>
 
@@ -307,26 +314,94 @@ export default function SendEmailPage() {
                     <ul className="list-disc list-inside space-y-1">
                       <li>Official invitation to inauguration</li>
                       <li>Includes event date, time & venue</li>
-                      <li>Personalized with team name</li>
+                      <li>Personalized with recipient name</li>
                       <li>Professional format</li>
                     </ul>
                   </div>
                 )}
 
-                {selectedPreset === "INAUGURATION_INVITE" && (
+                {selectedPreset === "CUSTOM" && (
                   <div className="text-sm text-muted-foreground space-y-2">
-                    <p className="font-medium">Template Info:</p>
-                    <ul className="list-disc list-inside space-y-1">
-                      <li>Official invitation to inauguration</li>
-                      <li>Includes event date, time & venue</li>
-                      <li>Personalized with team name</li>
-                      <li>Professional format</li>
-                    </ul>
+                    <p className="font-medium">Custom Email:</p>
+                    <p>
+                      Create your own email with custom HTML content and all
+                      email fields.
+                    </p>
                   </div>
                 )}
               </div>
             </CardContent>
           </Card>
+
+          {/* Email Fields (CC, BCC) - Available for ALL presets */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Email Fields (Optional)</CardTitle>
+              <CardDescription>
+                Add CC and BCC recipients for all emails
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div>
+                <label className="text-sm font-medium">CC</label>
+                <Input
+                  type="email"
+                  placeholder="cc@example.com"
+                  value={customCc}
+                  onChange={(e) => setCustomCc(e.target.value)}
+                  disabled={isPending}
+                  className="mt-1"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium">BCC</label>
+                <Input
+                  type="email"
+                  placeholder="bcc@example.com"
+                  value={customBcc}
+                  onChange={(e) => setCustomBcc(e.target.value)}
+                  disabled={isPending}
+                  className="mt-1"
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Custom Email Content - Only for CUSTOM preset */}
+          {selectedPreset === "CUSTOM" && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Custom Email Content</CardTitle>
+                <CardDescription>
+                  Define subject and HTML content
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div>
+                  <label className="text-sm font-medium">Subject *</label>
+                  <Input
+                    type="text"
+                    placeholder="Email subject"
+                    value={customSubject}
+                    onChange={(e) => setCustomSubject(e.target.value)}
+                    disabled={isPending}
+                    className="mt-1"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium">HTML Content *</label>
+                  <Textarea
+                    placeholder="Paste your HTML content here..."
+                    value={customHtml}
+                    onChange={(e) => setCustomHtml(e.target.value)}
+                    disabled={isPending}
+                    className="mt-1 font-mono text-xs"
+                    rows={12}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Send Button & Status */}
           <Card>
@@ -347,7 +422,9 @@ export default function SendEmailPage() {
                   <Badge variant="outline">
                     {selectedPreset === "INCOMPLETE_TEAM"
                       ? "Incomplete Team"
-                      : "Custom"}
+                      : selectedPreset === "INAUGURATION_INVITE"
+                        ? "Inauguration"
+                        : "Custom"}
                   </Badge>
                 </div>
               </div>

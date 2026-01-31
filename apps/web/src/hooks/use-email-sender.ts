@@ -18,6 +18,12 @@ export function useEmailSender() {
     useState<EmailPreset>("INCOMPLETE_TEAM");
   const [isPending, startTransition] = useTransition();
 
+  // Custom email data
+  const [customCc, setCustomCc] = useState("");
+  const [customBcc, setCustomBcc] = useState("");
+  const [customSubject, setCustomSubject] = useState("");
+  const [customHtml, setCustomHtml] = useState("");
+
   const addEmail = (email: string) => {
     const trimmedEmail = email.trim().toLowerCase();
     if (!trimmedEmail) return;
@@ -85,7 +91,21 @@ export function useEmailSender() {
 
     startTransition(async () => {
       const loadingToast = toast.loading("Sending emails...");
-      const response = await sendEmails(emails, selectedPreset);
+
+      const customData =
+        selectedPreset === "CUSTOM"
+          ? {
+              cc: customCc || undefined,
+              bcc: customBcc || undefined,
+              subject: customSubject,
+              html: customHtml,
+            }
+          : {
+              cc: customCc || undefined,
+              bcc: customBcc || undefined,
+            };
+
+      const response = await sendEmails(emails, selectedPreset, customData);
 
       toast.dismiss(loadingToast);
 
@@ -104,10 +124,18 @@ export function useEmailSender() {
     emails,
     selectedPreset,
     isPending,
+    customCc,
+    customBcc,
+    customSubject,
+    customHtml,
     addEmail,
     removeEmail,
     clearEmails,
     setSelectedPreset,
+    setCustomCc,
+    setCustomBcc,
+    setCustomSubject,
+    setCustomHtml,
     loadEmailsByOption,
     loadIncompleteTeamsEmails,
     sendEmailsToList,

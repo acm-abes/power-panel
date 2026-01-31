@@ -5,6 +5,10 @@
 import { prisma } from "@power/db";
 import { emailQueue } from "@/lib/queue";
 import { randomUUID } from "crypto";
+import {
+  generateIncompleteTeamEmail,
+  generateInaugurationInviteEmail,
+} from "@/lib/email-templates";
 
 export type EmailPreset = "INCOMPLETE_TEAM" | "INAUGURATION_INVITE" | "CUSTOM";
 
@@ -307,7 +311,16 @@ export async function getIncompleteTeamsData() {
 /**
  * Send emails based on preset and email list
  */
-export async function sendEmails(emails: string[], preset: EmailPreset) {
+export async function sendEmails(
+  emails: string[],
+  preset: EmailPreset,
+  customData?: {
+    cc?: string;
+    bcc?: string;
+    subject?: string;
+    html?: string;
+  },
+) {
   try {
     if (emails.length === 0) {
       return {
@@ -378,7 +391,7 @@ export async function sendEmails(emails: string[], preset: EmailPreset) {
             : null;
 
           // Use team data if available, otherwise use defaults
-          const templateData = team
+          const teamData = team
             ? {
                 teamName: team.name,
                 teamCode: team.teamCode,
@@ -390,13 +403,20 @@ export async function sendEmails(emails: string[], preset: EmailPreset) {
                 membersInTeam: 1,
               };
 
-          // Enqueue without any restrictions
+          // Generate email content in web app
+          const { subject, html } = generateIncompleteTeamEmail(
+            recipientName,
+            teamData,
+          );
+
+          // Enqueue with generated content
           emailQueue.enqueue({
             to: email,
-            recipientName,
+            cc: customData?.cc,
+            bcc: customData?.bcc,
+            subject,
+            html,
             userId,
-            template: "INCOMPLETE_TEAM",
-            templateData,
             campaignId,
           });
 
@@ -450,17 +470,24 @@ export async function sendEmails(emails: string[], preset: EmailPreset) {
           const recipientName = user?.name || "there";
           const userId = user?.id || `unknown-${email}`;
 
-          // Simple invitation - no team details needed
-          emailQueue.enqueue({
-            to: email,
+          // Generate email content in web app
+          const { subject, html } = generateInaugurationInviteEmail(
             recipientName,
-            userId: userId,
-            template: "INAUGURATION_INVITE",
-            templateData: {
+            {
               eventDate: "1st February 2026",
               eventTime: "9:00 AM onwards",
               venue: "YouTube",
             },
+          );
+
+          // Enqueue with generated content
+          emailQueue.enqueue({
+            to: email,
+            cc: customData?.cc,
+            bcc: customData?.bcc,
+            subject,
+            html,
+            userId,
             campaignId,
           });
 
@@ -476,13 +503,47 @@ export async function sendEmails(emails: string[], preset: EmailPreset) {
       }
 
       case "CUSTOM": {
-        // For custom emails, we need a different implementation
-        // This would require a generic email template
+        if (!customData?.subject || !customData?.html) {
+          return {
+            success: false,
+            error: "Custom emails require subject and HTML content",
+            sent: 0,
+            failed: 0,
+          };
+        }
+
+        const campaignId = randomUUID();
+
+        // Try to get user IDs from both tables
+        const users = await prisma.user.findMany({
+          where: { email: { in: emails } },
+          select: { id: true, email: true },
+        });
+        const userIdMap = new Map(users.map((u) => [u.email, u.id]));
+
+        let jobCount = 0;
+
+        for (const email of emails) {
+          const userId = userIdMap.get(email) || `unknown-${email}`;
+
+          emailQueue.enqueue({
+            to: email,
+            cc: customData.cc,
+            bcc: customData.bcc,
+            subject: customData.subject,
+            html: customData.html,
+            userId,
+            campaignId,
+          });
+
+          jobCount++;
+        }
+
         return {
-          success: false,
-          error: "Custom email preset not implemented yet",
-          sent: 0,
+          success: true,
+          sent: jobCount,
           failed: 0,
+          message: `Queued ${jobCount} custom emails for delivery`,
         };
       }
 

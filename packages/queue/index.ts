@@ -4,62 +4,18 @@ import { Queue } from "bullmq";
 
 export const EMAIL_QUEUE = "sah-emails";
 
-// SAH 2.0 Email Templates
-export type EmailTemplate =
-  | "INCOMPLETE_TEAM"
-  | "WELCOME"
-  | "REMINDER"
-  | "ANNOUNCEMENT"
-  | "INAUGURATION_INVITE";
-
-// Email job for SAH 2.0 Hackathon
+// Simple email job - just send what's given
 export type SendEmailJob = {
-  // Recipient info
+  // Email fields
   to: string;
-  recipientName: string;
-  userId: string;
+  cc?: string;
+  bcc?: string;
+  subject: string;
+  html: string;
 
-  // Email template
-  template: EmailTemplate;
-
-  // Template-specific data
-  templateData:
-    | IncompleteTeamData
-    | WelcomeData
-    | ReminderData
-    | AnnouncementData
-    | InaugurationInviteData;
-
-  // Tracking
+  // Tracking data
   campaignId: string;
-};
-
-// Template data types for SAH 2.0
-export type IncompleteTeamData = {
-  teamName: string;
-  teamCode: string;
-  membersInTeam: number;
-};
-
-export type WelcomeData = {
-  teamName?: string;
-};
-
-export type ReminderData = {
-  eventName: string;
-  eventDate: string;
-  message: string;
-};
-
-export type AnnouncementData = {
-  title: string;
-  message: string;
-};
-
-export type InaugurationInviteData = {
-  eventDate: string;
-  eventTime: string;
-  venue: string;
+  userId: string;
 };
 
 export function createEmailQueue(connection: IORedis) {
