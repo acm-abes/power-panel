@@ -5,7 +5,19 @@
 import { prisma } from "@power/db";
 
 export async function getAnalyticsData() {
+  // Get valid team codes from TempTeamData (source of truth)
+  const validTeams = await prisma.tempTeamData.findMany({
+    select: { teamCode: true },
+  });
+  const validTeamCodes = new Set(validTeams.map((t) => t.teamCode));
+
+  // Only get analytics for teams that currently exist
   const analytics = await prisma.analytics.findMany({
+    where: {
+      teamCode: {
+        in: Array.from(validTeamCodes),
+      },
+    },
     orderBy: { createdAt: "desc" },
   });
 
