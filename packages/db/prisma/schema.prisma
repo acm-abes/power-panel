@@ -1,0 +1,349 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client"
+  output   = "./generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// Enums
+enum TeamMemberRole {
+  LEAD
+  MEMBER
+}
+
+enum RoleName {
+  ADMIN
+  JUDGE
+  MENTOR
+  PARTICIPANT
+}
+
+enum EmailJobStatus {
+  SENT
+  FAILED
+}
+
+// Better Auth Models
+model User {
+  id            String    @id
+  name          String
+  email         String
+  emailVerified Boolean   @default(false)
+  image         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  // Better Auth relations
+  sessions      Session[]
+  accounts      Account[]
+  
+  // Application relations
+  teamMemberships    TeamMember[]
+  userRoles          UserRole[]
+  judgeAssignments   JudgeAssignment[]
+  evaluations        Evaluation[]
+  announcements      Announcement[]
+  mentorFeedbacks    MentorFeedback[]
+
+  @@unique([email])
+  @@map("user")
+}
+
+model Session {
+  id        String   @id
+  expiresAt DateTime
+  token     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([token])
+  @@index([userId])
+  @@map("session")
+}
+
+model Account {
+  id                    String    @id
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@index([userId])
+  @@map("account")
+}
+
+model Verification {
+  id         String   @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([identifier])
+  @@map("verification")
+}
+
+// Application Models
+
+// Team - Hackathon team
+model Team {
+  id        String   @id @default(cuid())
+  name      String
+  teamCode  String   @unique
+  track     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  members           TeamMember[]
+  judgeAssignments  JudgeAssignment[]
+  evaluations       Evaluation[]
+  mentorFeedbacks   MentorFeedback[]
+
+  @@map("team")
+}
+
+// TeamMember - Junction table for team membership
+model TeamMember {
+  id        String         @id @default(cuid())
+  userId    String
+  teamId    String
+  role      TeamMemberRole
+  createdAt DateTime       @default(now())
+  
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, teamId])
+  @@index([userId])
+  @@index([teamId])
+  @@map("team_member")
+}
+
+// Role - System-wide roles
+model Role {
+  id   String   @id @default(cuid())
+  name RoleName @unique
+  
+  userRoles UserRole[]
+
+  @@map("role")
+}
+
+// UserRole - Junction table for user roles
+model UserRole {
+  id        String   @id @default(cuid())
+  userId    String
+  roleId    String
+  createdAt DateTime @default(now())
+  
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, roleId])
+  @@index([userId])
+  @@index([roleId])
+  @@map("user_role")
+}
+
+// JudgeAssignment - Which judge evaluates which team
+model JudgeAssignment {
+  id        String   @id @default(cuid())
+  judgeId   String
+  teamId    String
+  createdAt DateTime @default(now())
+  
+  judge User @relation(fields: [judgeId], references: [id], onDelete: Cascade)
+  team  Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  @@unique([judgeId, teamId])
+  @@index([judgeId])
+  @@index([teamId])
+  @@map("judge_assignment")
+}
+
+// EvaluationCriterion - Data-driven evaluation criteria
+model EvaluationCriterion {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  subject     String
+  description String
+  fullMark    Int
+  order       Int
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  
+  scores EvaluationScore[]
+
+  @@map("evaluation_criterion")
+}
+
+// Evaluation - One evaluation submission
+model Evaluation {
+  id                  String    @id @default(cuid())
+  judgeId             String
+  teamId              String
+  submittedAt         DateTime?
+  extraPoints         Int       @default(0)
+  extraJustification  String?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+  
+  judge  User               @relation(fields: [judgeId], references: [id], onDelete: Cascade)
+  team   Team               @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  scores EvaluationScore[]
+
+  @@unique([judgeId, teamId])
+  @@index([judgeId])
+  @@index([teamId])
+  @@map("evaluation")
+}
+
+// EvaluationScore - Individual criterion scores
+model EvaluationScore {
+  id           String   @id @default(cuid())
+  evaluationId String
+  criterionId  String
+  score        Int
+  
+  evaluation Evaluation          @relation(fields: [evaluationId], references: [id], onDelete: Cascade)
+  criterion  EvaluationCriterion @relation(fields: [criterionId], references: [id], onDelete: Restrict)
+
+  @@unique([evaluationId, criterionId])
+  @@index([evaluationId])
+  @@index([criterionId])
+  @@map("evaluation_score")
+}
+
+// Announcement - System announcements
+model Announcement {
+  id        String   @id @default(cuid())
+  title     String
+  content   String
+  createdBy String
+  createdAt DateTime @default(now())
+  
+  creator User @relation(fields: [createdBy], references: [id], onDelete: Cascade)
+
+  @@index([createdBy])
+  @@map("announcement")
+}
+
+// MentorFeedback - Mentor feedback for teams (private)
+model MentorFeedback {
+  id        String   @id @default(cuid())
+  mentorId  String
+  teamId    String
+  content   String
+  createdAt DateTime @default(now())
+  
+  mentor User @relation(fields: [mentorId], references: [id], onDelete: Cascade)
+  team   Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+
+  @@index([mentorId])
+  @@index([teamId])
+  @@map("mentor_feedback")
+}
+
+// EmailJob - Track email campaign delivery status
+model EmailJob {
+  id         String         @id @default(cuid())
+  campaignId String
+  userId     String?
+  email      String
+  status     EmailJobStatus
+  providerId String?
+  error      String?
+  createdAt  DateTime       @default(now())
+
+  @@index([campaignId])
+  @@index([status])
+  @@map("email_job")
+}
+
+model TempTeamData {
+  id        String   @id @default(cuid())
+  name      String
+  teamCode  String   @unique
+  track     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@map("temp_team_data")
+}
+
+model TempTeamMembers {
+  id        String   @id @default(cuid())
+  userEmail String
+  teamId   String
+  createdAt DateTime @default(now())
+  
+  @@map("temp_team_members")
+}
+
+// Analytics - User data for statistics and analytics
+model Analytics {
+  id                   String   @id @default(cuid())
+  serialNo             String
+  teamName             String
+  teamCode             String
+  userName             String
+  userEmail            String
+  position             String
+  status               String
+  submitted            String
+  joinedAt             String
+  firstName            String
+  lastName             String
+  phoneNumber          String
+  degreeType           String
+  educationLevel       String
+  graduationYear       String
+  collegeName          String
+  skills               String?
+  githubUsername       String?
+  portfolioUrl         String?
+  bio                  String?
+  hackathonExperience  String?
+  interestedRoles      String?
+  dietaryRestrictions  String?
+  tshirtSize           String?
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+  
+  @@unique([serialNo])
+  @@index([teamCode])
+  @@index([userEmail])
+  @@map("analytics")
+}
+
+// SeedMeta - Track Excel seeding history
+model SeedMeta {
+  id         String   @id @default(cuid())
+  sourceFile String
+  seededAt   DateTime @default(now())
+  seededBy   String
+  
+  @@map("seed_meta")
+}

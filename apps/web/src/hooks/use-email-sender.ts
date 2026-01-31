@@ -1,0 +1,189 @@
+/** @format */
+
+"use client";
+
+import { useState, useTransition } from "react";
+import { toast } from "sonner";
+import {
+  getEmailsByOption,
+  sendEmails,
+  getIncompleteTeamsData,
+  type EmailListOption,
+  type EmailPreset,
+} from "@/actions/send-emails";
+
+export function useEmailSender() {
+  const [emails, setEmails] = useState<string[]>([]);
+  const [selectedPreset, setSelectedPreset] =
+    useState<EmailPreset>("INCOMPLETE_TEAM");
+  const [isPending, startTransition] = useTransition();
+
+  // Custom email data
+  const [customCc, setCustomCc] = useState<string[]>([]);
+  const [customBcc, setCustomBcc] = useState<string[]>([]);
+  const [customSubject, setCustomSubject] = useState("");
+  const [customHtml, setCustomHtml] = useState("");
+
+  const addEmail = (email: string) => {
+    const trimmedEmail = email.trim().toLowerCase();
+    if (!trimmedEmail) return;
+
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(trimmedEmail)) {
+      toast.error("Invalid email format");
+      return;
+    }
+
+    if (emails.includes(trimmedEmail)) {
+      toast.error("Email already in list");
+      return;
+    }
+
+    setEmails((prev) => [...prev, trimmedEmail]);
+    toast.success("Email added to list");
+  };
+
+  const removeEmail = (email: string) => {
+    setEmails((prev) => prev.filter((e) => e !== email));
+  };
+
+  const clearEmails = () => {
+    setEmails([]);
+    toast.info("Email list cleared");
+  };
+
+  const addCcEmail = (email: string) => {
+    const trimmedEmail = email.trim().toLowerCase();
+    if (!trimmedEmail) return;
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(trimmedEmail)) {
+      toast.error("Invalid CC email format");
+      return;
+    }
+
+    if (customCc.includes(trimmedEmail)) {
+      toast.error("CC email already added");
+      return;
+    }
+
+    setCustomCc((prev) => [...prev, trimmedEmail]);
+  };
+
+  const removeCcEmail = (email: string) => {
+    setCustomCc((prev) => prev.filter((e) => e !== email));
+  };
+
+  const addBccEmail = (email: string) => {
+    const trimmedEmail = email.trim().toLowerCase();
+    if (!trimmedEmail) return;
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(trimmedEmail)) {
+      toast.error("Invalid BCC email format");
+      return;
+    }
+
+    if (customBcc.includes(trimmedEmail)) {
+      toast.error("BCC email already added");
+      return;
+    }
+
+    setCustomBcc((prev) => [...prev, trimmedEmail]);
+  };
+
+  const removeBccEmail = (email: string) => {
+    setCustomBcc((prev) => prev.filter((e) => e !== email));
+  };
+
+  const loadEmailsByOption = async (option: EmailListOption) => {
+    startTransition(async () => {
+      const response = await getEmailsByOption(option);
+
+      if (response.success) {
+        setEmails(response.emails);
+        toast.success(`Loaded ${response.count} emails`);
+      } else {
+        toast.error(response.error || "Failed to load emails");
+      }
+    });
+  };
+
+  const loadIncompleteTeamsEmails = async () => {
+    startTransition(async () => {
+      const response = await getIncompleteTeamsData();
+
+      if (response.success) {
+        const allEmails = response.teams.flatMap((team) => team.emails);
+        const uniqueEmails = [...new Set(allEmails)];
+        setEmails(uniqueEmails);
+        toast.success(
+          `Loaded ${uniqueEmails.length} emails from ${response.count} incomplete teams`,
+        );
+      } else {
+        toast.error(response.error || "Failed to load incomplete teams");
+      }
+    });
+  };
+
+  const sendEmailsToList = async () => {
+    if (emails.length === 0) {
+      toast.error("No emails in list");
+      return;
+    }
+
+    startTransition(async () => {
+      const loadingToast = toast.loading("Sending emails...");
+
+      const customData =
+        selectedPreset === "CUSTOM"
+          ? {
+              cc: customCc.length > 0 ? customCc.join(", ") : undefined,
+              bcc: customBcc.length > 0 ? customBcc.join(", ") : undefined,
+              subject: customSubject,
+              html: customHtml,
+            }
+          : {
+              cc: customCc.length > 0 ? customCc.join(", ") : undefined,
+              bcc: customBcc.length > 0 ? customBcc.join(", ") : undefined,
+            };
+
+      const response = await sendEmails(emails, selectedPreset, customData);
+
+      toast.dismiss(loadingToast);
+
+      if (response.success) {
+        toast.success(
+          response.message ||
+            `Successfully sent emails to ${response.sent} recipients`,
+        );
+      } else {
+        toast.error(response.error || "Failed to send emails");
+      }
+    });
+  };
+
+  return {
+    emails,
+    selectedPreset,
+    isPending,
+    customCc,
+    customBcc,
+    customSubject,
+    customHtml,
+    addEmail,
+    removeEmail,
+    clearEmails,
+    addCcEmail,
+    removeCcEmail,
+    addBccEmail,
+    removeBccEmail,
+    setSelectedPreset,
+    setCustomSubject,
+    setCustomHtml,
+    loadEmailsByOption,
+    loadIncompleteTeamsEmails,
+    sendEmailsToList,
+  };
+}
