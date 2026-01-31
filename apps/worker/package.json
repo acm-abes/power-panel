@@ -1,5 +1,5 @@
 {
-  "name": "@power/queue",
+  "name": "worker",
   "module": "index.ts",
   "type": "module",
   "private": true,
@@ -10,7 +10,9 @@
     "typescript": "^5"
   },
   "dependencies": {
+    "@power/queue": "workspace:*",
     "bullmq": "^5.67.2",
-    "ioredis": "^5.9.2"
+    "ioredis": "^5.9.2",
+    "resend": "^6.9.1"
   }
 }

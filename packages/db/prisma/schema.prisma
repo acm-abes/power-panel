@@ -26,7 +26,10 @@ enum RoleName {
   PARTICIPANT
 }
 
-
+enum EmailJobStatus {
+  SENT
+  FAILED
+}
 
 // Better Auth Models
 model User {
@@ -49,6 +52,7 @@ model User {
   evaluations        Evaluation[]
   announcements      Announcement[]
   mentorFeedbacks    MentorFeedback[]
+  emailJobs          EmailJob[]
 
   @@unique([email])
   @@map("user")
@@ -261,6 +265,25 @@ model MentorFeedback {
   @@index([mentorId])
   @@index([teamId])
   @@map("mentor_feedback")
+}
+
+// EmailJob - Track email campaign delivery status
+model EmailJob {
+  id         String         @id @default(cuid())
+  campaignId String
+  userId     String
+  email      String
+  status     EmailJobStatus
+  providerId String?
+  error      String?
+  createdAt  DateTime       @default(now())
+  
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([campaignId])
+  @@index([userId])
+  @@index([status])
+  @@map("email_job")
 }
 
 model TempTeamData {
