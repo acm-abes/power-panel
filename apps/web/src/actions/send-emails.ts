@@ -412,8 +412,8 @@ export async function sendEmails(
           // Enqueue with generated content
           emailQueue.enqueue({
             to: email,
-            cc: customData?.cc,
-            bcc: customData?.bcc,
+            cc: customData?.cc?.split(", "),
+            bcc: customData?.bcc?.split(", "),
             subject,
             html,
             userId,
@@ -483,8 +483,8 @@ export async function sendEmails(
           // Enqueue with generated content
           emailQueue.enqueue({
             to: email,
-            cc: customData?.cc,
-            bcc: customData?.bcc,
+            cc: customData?.cc?.split(", "),
+            bcc: customData?.bcc?.split(", "),
             subject,
             html,
             userId,
@@ -528,8 +528,8 @@ export async function sendEmails(
 
           emailQueue.enqueue({
             to: email,
-            cc: customData.cc,
-            bcc: customData.bcc,
+            cc: customData.cc?.split(" "),
+            bcc: customData.bcc?.split(" "),
             subject: customData.subject,
             html: customData.html,
             userId,

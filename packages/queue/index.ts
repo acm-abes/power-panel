@@ -8,8 +8,8 @@ export const EMAIL_QUEUE = "sah-emails";
 export type SendEmailJob = {
   // Email fields
   to: string;
-  cc?: string;
-  bcc?: string;
+  cc?: string[];
+  bcc?: string[];
   subject: string;
   html: string;
 

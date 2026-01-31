@@ -19,8 +19,8 @@ export function useEmailSender() {
   const [isPending, startTransition] = useTransition();
 
   // Custom email data
-  const [customCc, setCustomCc] = useState("");
-  const [customBcc, setCustomBcc] = useState("");
+  const [customCc, setCustomCc] = useState<string[]>([]);
+  const [customBcc, setCustomBcc] = useState<string[]>([]);
   const [customSubject, setCustomSubject] = useState("");
   const [customHtml, setCustomHtml] = useState("");
 
@@ -51,6 +51,50 @@ export function useEmailSender() {
   const clearEmails = () => {
     setEmails([]);
     toast.info("Email list cleared");
+  };
+
+  const addCcEmail = (email: string) => {
+    const trimmedEmail = email.trim().toLowerCase();
+    if (!trimmedEmail) return;
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(trimmedEmail)) {
+      toast.error("Invalid CC email format");
+      return;
+    }
+
+    if (customCc.includes(trimmedEmail)) {
+      toast.error("CC email already added");
+      return;
+    }
+
+    setCustomCc((prev) => [...prev, trimmedEmail]);
+  };
+
+  const removeCcEmail = (email: string) => {
+    setCustomCc((prev) => prev.filter((e) => e !== email));
+  };
+
+  const addBccEmail = (email: string) => {
+    const trimmedEmail = email.trim().toLowerCase();
+    if (!trimmedEmail) return;
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(trimmedEmail)) {
+      toast.error("Invalid BCC email format");
+      return;
+    }
+
+    if (customBcc.includes(trimmedEmail)) {
+      toast.error("BCC email already added");
+      return;
+    }
+
+    setCustomBcc((prev) => [...prev, trimmedEmail]);
+  };
+
+  const removeBccEmail = (email: string) => {
+    setCustomBcc((prev) => prev.filter((e) => e !== email));
   };
 
   const loadEmailsByOption = async (option: EmailListOption) => {
@@ -95,14 +139,14 @@ export function useEmailSender() {
       const customData =
         selectedPreset === "CUSTOM"
           ? {
-              cc: customCc || undefined,
-              bcc: customBcc || undefined,
+              cc: customCc.length > 0 ? customCc.join(", ") : undefined,
+              bcc: customBcc.length > 0 ? customBcc.join(", ") : undefined,
               subject: customSubject,
               html: customHtml,
             }
           : {
-              cc: customCc || undefined,
-              bcc: customBcc || undefined,
+              cc: customCc.length > 0 ? customCc.join(", ") : undefined,
+              bcc: customBcc.length > 0 ? customBcc.join(", ") : undefined,
             };
 
       const response = await sendEmails(emails, selectedPreset, customData);
@@ -131,9 +175,11 @@ export function useEmailSender() {
     addEmail,
     removeEmail,
     clearEmails,
+    addCcEmail,
+    removeCcEmail,
+    addBccEmail,
+    removeBccEmail,
     setSelectedPreset,
-    setCustomCc,
-    setCustomBcc,
     setCustomSubject,
     setCustomHtml,
     loadEmailsByOption,

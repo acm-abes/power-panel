@@ -12,8 +12,8 @@ export async function sendMail({
   html,
 }: {
   to: string;
-  cc?: string;
-  bcc?: string;
+  cc?: string[];
+  bcc?: string[];
   subject: string;
   html: string;
 }) {

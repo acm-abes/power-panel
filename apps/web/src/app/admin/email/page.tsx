@@ -41,6 +41,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { EmailPreset } from "@/actions/send-emails";
+import { EmailTagInput } from "@/components/email-tag-input";
 
 export default function SendEmailPage() {
   const {
@@ -54,9 +55,11 @@ export default function SendEmailPage() {
     addEmail,
     removeEmail,
     clearEmails,
+    addCcEmail,
+    removeCcEmail,
+    addBccEmail,
+    removeBccEmail,
     setSelectedPreset,
-    setCustomCc,
-    setCustomBcc,
     setCustomSubject,
     setCustomHtml,
     loadEmailsByOption,
@@ -101,59 +104,209 @@ export default function SendEmailPage() {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left Column - Email List Builder */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Quick Load Options */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Quick Load Email Lists</CardTitle>
-              <CardDescription>
-                Load predefined email lists with one click
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+      <div className="space-y-6">
+        {/* Step 1: Email Configuration */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <span className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary font-bold">
+                1
+              </span>
+              Email Configuration
+            </CardTitle>
+            <CardDescription>
+              Select template and configure email options
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Template Selection */}
+              <div className="space-y-3">
+                <label className="text-sm font-medium">Email Template</label>
+                <Select
+                  value={selectedPreset}
+                  onValueChange={(value) =>
+                    setSelectedPreset(value as EmailPreset)
+                  }
+                  disabled={isPending}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select email template" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="INCOMPLETE_TEAM">
+                      Incomplete Team Alert
+                    </SelectItem>
+                    <SelectItem value="INAUGURATION_INVITE">
+                      Inauguration Invite
+                    </SelectItem>
+                    <SelectItem value="CUSTOM">Custom HTML Email</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                {selectedPreset === "INCOMPLETE_TEAM" && (
+                  <div className="text-xs text-muted-foreground space-y-1 mt-2">
+                    <p className="font-medium">Includes:</p>
+                    <ul className="list-disc list-inside space-y-0.5">
+                      <li>Personalized team details</li>
+                      <li>Current team size</li>
+                      <li>Action required notice</li>
+                    </ul>
+                  </div>
+                )}
+
+                {selectedPreset === "INAUGURATION_INVITE" && (
+                  <div className="text-xs text-muted-foreground space-y-1 mt-2">
+                    <p className="font-medium">Includes:</p>
+                    <ul className="list-disc list-inside space-y-0.5">
+                      <li>Event details</li>
+                      <li>Personalized greeting</li>
+                      <li>Professional format</li>
+                    </ul>
+                  </div>
+                )}
+
+                {selectedPreset === "CUSTOM" && (
+                  <div className="text-xs text-muted-foreground mt-2">
+                    Create your own email with custom HTML and subject.
+                  </div>
+                )}
+              </div>
+
+              {/* Email Fields */}
+              <div className="space-y-3">
+                <label className="text-sm font-medium">
+                  Additional Recipients (Optional)
+                </label>
+                <div className="space-y-2">
+                  <div>
+                    <label className="text-xs text-muted-foreground mb-1 block">
+                      CC (press Space or Enter to add)
+                    </label>
+                    <EmailTagInput
+                      emails={customCc}
+                      onAdd={addCcEmail}
+                      onRemove={removeCcEmail}
+                      placeholder="cc@example.com"
+                      disabled={isPending}
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs text-muted-foreground mb-1 block">
+                      BCC (press Space or Enter to add)
+                    </label>
+                    <EmailTagInput
+                      emails={customBcc}
+                      onAdd={addBccEmail}
+                      onRemove={removeBccEmail}
+                      placeholder="bcc@example.com"
+                      disabled={isPending}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Custom Email Content - Full width when CUSTOM selected */}
+            {selectedPreset === "CUSTOM" && (
+              <>
+                <Separator className="my-6" />
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-sm font-medium">Subject *</label>
+                    <Input
+                      type="text"
+                      placeholder="Email subject line"
+                      value={customSubject}
+                      onChange={(e) => setCustomSubject(e.target.value)}
+                      disabled={isPending}
+                      className="mt-2"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium">
+                      HTML Content *
+                    </label>
+                    <Textarea
+                      placeholder="Paste your HTML content here..."
+                      value={customHtml}
+                      onChange={(e) => setCustomHtml(e.target.value)}
+                      disabled={isPending}
+                      className="mt-2 font-mono text-xs"
+                      rows={10}
+                    />
+                  </div>
+                </div>
+              </>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Step 2: Recipient Selection */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <span className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary font-bold">
+                2
+              </span>
+              Select Recipients
+            </CardTitle>
+            <CardDescription>
+              Load predefined lists or add emails manually
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {/* Quick Load Buttons */}
+            <div>
+              <label className="text-sm font-medium mb-2 block">
+                Quick Load Options
+              </label>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                 <Button
                   variant="outline"
                   onClick={() => loadEmailsByOption("TEAM_SIZE_1")}
                   disabled={isPending}
-                  className="flex items-center gap-2"
+                  size="sm"
+                  className="justify-start"
                 >
-                  <Users className="w-4 h-4" />
-                  Team Size = 1
+                  <Users className="w-3 h-3 mr-2" />
+                  Size = 1
                 </Button>
                 <Button
                   variant="outline"
                   onClick={() => loadEmailsByOption("TEAM_SIZE_2")}
                   disabled={isPending}
-                  className="flex items-center gap-2"
+                  size="sm"
+                  className="justify-start"
                 >
-                  <Users className="w-4 h-4" />
-                  Team Size = 2
+                  <Users className="w-3 h-3 mr-2" />
+                  Size = 2
                 </Button>
                 <Button
                   variant="outline"
                   onClick={() => loadEmailsByOption("TEAM_SIZE_3")}
                   disabled={isPending}
-                  className="flex items-center gap-2"
+                  size="sm"
+                  className="justify-start"
                 >
-                  <Users className="w-4 h-4" />
-                  Team Size = 3
+                  <Users className="w-3 h-3 mr-2" />
+                  Size = 3
                 </Button>
                 <Button
                   variant="outline"
                   onClick={loadIncompleteTeamsEmails}
                   disabled={isPending}
-                  className="flex items-center gap-2"
+                  size="sm"
+                  className="justify-start"
                 >
-                  <AlertTriangle className="w-4 h-4" />
-                  Incomplete Teams
+                  <AlertTriangle className="w-3 h-3 mr-2" />
+                  Incomplete
                 </Button>
                 <Button
                   variant="outline"
                   onClick={() => loadEmailsByOption("ALL_PARTICIPANTS")}
                   disabled={isPending}
+                  size="sm"
                 >
                   All Participants
                 </Button>
@@ -161,6 +314,7 @@ export default function SendEmailPage() {
                   variant="outline"
                   onClick={() => loadEmailsByOption("ALL_JUDGES")}
                   disabled={isPending}
+                  size="sm"
                 >
                   All Judges
                 </Button>
@@ -168,22 +322,20 @@ export default function SendEmailPage() {
                   variant="outline"
                   onClick={() => loadEmailsByOption("ALL_MENTORS")}
                   disabled={isPending}
+                  size="sm"
                 >
                   All Mentors
                 </Button>
               </div>
-            </CardContent>
-          </Card>
+            </div>
 
-          {/* Manual Email Input */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Add Email Manually</CardTitle>
-              <CardDescription>
-                Type an email address and add it to the list
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
+            <Separator />
+
+            {/* Manual Email Input */}
+            <div>
+              <label className="text-sm font-medium mb-2 block">
+                Add Manually
+              </label>
               <div className="flex gap-2">
                 <Input
                   type="email"
@@ -198,27 +350,23 @@ export default function SendEmailPage() {
                   onClick={handleAddEmail}
                   disabled={isPending || !emailInput.trim()}
                 >
-                  <Plus className="w-4 h-4" />
+                  <Plus className="w-4 h-4 mr-2" />
                   Add
                 </Button>
               </div>
-            </CardContent>
-          </Card>
+            </div>
 
-          {/* Email List Display */}
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle>Email List</CardTitle>
-                  <CardDescription>
-                    {emails.length} email{emails.length !== 1 ? "s" : ""} in
-                    list
-                  </CardDescription>
-                </div>
+            <Separator />
+
+            {/* Email List */}
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <label className="text-sm font-medium">
+                  Recipients ({emails.length})
+                </label>
                 {emails.length > 0 && (
                   <Button
-                    variant="outline"
+                    variant="ghost"
                     size="sm"
                     onClick={clearEmails}
                     disabled={isPending}
@@ -227,199 +375,60 @@ export default function SendEmailPage() {
                   </Button>
                 )}
               </div>
-            </CardHeader>
-            <CardContent>
               {emails.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  <Mail className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                  <p>No emails added yet</p>
-                  <p className="text-sm">Use quick load or add manually</p>
+                <div className="text-center py-8 text-muted-foreground border-2 border-dashed rounded-lg">
+                  <Mail className="w-10 h-10 mx-auto mb-2 opacity-50" />
+                  <p className="text-sm">No recipients added</p>
+                  <p className="text-xs">Use quick load or add manually</p>
                 </div>
               ) : (
-                <div className="max-h-96 overflow-y-auto space-y-2">
-                  {emails.map((email, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center justify-between p-2 bg-muted rounded-md hover:bg-muted/80 transition-colors"
-                    >
-                      <span className="text-sm font-mono">{email}</span>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => removeEmail(email)}
-                        disabled={isPending}
-                        className="h-6 w-6 p-0"
+                <div className="border rounded-lg max-h-64 overflow-y-auto">
+                  <div className="divide-y">
+                    {emails.map((email, index) => (
+                      <div
+                        key={index}
+                        className="flex items-center justify-between p-3 hover:bg-muted/50 transition-colors"
                       >
-                        <X className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  ))}
+                        <span className="text-sm font-mono">{email}</span>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => removeEmail(email)}
+                          disabled={isPending}
+                          className="h-7 w-7 p-0"
+                        >
+                          <X className="w-3 h-3" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
-            </CardContent>
-          </Card>
-        </div>
+            </div>
+          </CardContent>
+        </Card>
 
-        {/* Right Column - Email Configuration & Send */}
-        <div className="space-y-6">
-          {/* Email Preset Selection */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Email Template</CardTitle>
-              <CardDescription>
-                Choose which email template to send
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Select Preset</label>
-                <Select
-                  value={selectedPreset}
-                  onValueChange={(value) =>
-                    setSelectedPreset(value as EmailPreset)
-                  }
-                  disabled={isPending}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select email template" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="INCOMPLETE_TEAM">
-                      Incomplete Team Alert
-                    </SelectItem>
-                    <SelectItem value="INAUGURATION_INVITE">
-                      Inauguration Invite
-                    </SelectItem>
-                    <SelectItem value="CUSTOM">Custom HTML Email</SelectItem>
-                  </SelectContent>
-                </Select>
-
-                <Separator className="my-4" />
-
-                {selectedPreset === "INCOMPLETE_TEAM" && (
-                  <div className="text-sm text-muted-foreground space-y-2">
-                    <p className="font-medium">Template Info:</p>
-                    <ul className="list-disc list-inside space-y-1">
-                      <li>Personalized with team details</li>
-                      <li>Shows current team size</li>
-                      <li>Includes action required notice</li>
-                      <li>Contains important dates</li>
-                    </ul>
-                  </div>
-                )}
-
-                {selectedPreset === "INAUGURATION_INVITE" && (
-                  <div className="text-sm text-muted-foreground space-y-2">
-                    <p className="font-medium">Template Info:</p>
-                    <ul className="list-disc list-inside space-y-1">
-                      <li>Official invitation to inauguration</li>
-                      <li>Includes event date, time & venue</li>
-                      <li>Personalized with recipient name</li>
-                      <li>Professional format</li>
-                    </ul>
-                  </div>
-                )}
-
-                {selectedPreset === "CUSTOM" && (
-                  <div className="text-sm text-muted-foreground space-y-2">
-                    <p className="font-medium">Custom Email:</p>
-                    <p>
-                      Create your own email with custom HTML content and all
-                      email fields.
-                    </p>
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Email Fields (CC, BCC) - Available for ALL presets */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Email Fields (Optional)</CardTitle>
-              <CardDescription>
-                Add CC and BCC recipients for all emails
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div>
-                <label className="text-sm font-medium">CC</label>
-                <Input
-                  type="email"
-                  placeholder="cc@example.com"
-                  value={customCc}
-                  onChange={(e) => setCustomCc(e.target.value)}
-                  disabled={isPending}
-                  className="mt-1"
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium">BCC</label>
-                <Input
-                  type="email"
-                  placeholder="bcc@example.com"
-                  value={customBcc}
-                  onChange={(e) => setCustomBcc(e.target.value)}
-                  disabled={isPending}
-                  className="mt-1"
-                />
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Custom Email Content - Only for CUSTOM preset */}
-          {selectedPreset === "CUSTOM" && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Custom Email Content</CardTitle>
-                <CardDescription>
-                  Define subject and HTML content
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-3">
+        {/* Step 3: Review & Send */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <span className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary font-bold">
+                3
+              </span>
+              Review & Send
+            </CardTitle>
+            <CardDescription>Confirm details before sending</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4 p-4 bg-muted/50 rounded-lg">
                 <div>
-                  <label className="text-sm font-medium">Subject *</label>
-                  <Input
-                    type="text"
-                    placeholder="Email subject"
-                    value={customSubject}
-                    onChange={(e) => setCustomSubject(e.target.value)}
-                    disabled={isPending}
-                    className="mt-1"
-                  />
+                  <p className="text-xs text-muted-foreground">Recipients</p>
+                  <p className="text-2xl font-bold">{emails.length}</p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium">HTML Content *</label>
-                  <Textarea
-                    placeholder="Paste your HTML content here..."
-                    value={customHtml}
-                    onChange={(e) => setCustomHtml(e.target.value)}
-                    disabled={isPending}
-                    className="mt-1 font-mono text-xs"
-                    rows={12}
-                  />
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Send Button & Status */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Send Emails</CardTitle>
-              <CardDescription>
-                Review and send emails to the list
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="p-4 bg-muted rounded-md space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Recipients:</span>
-                  <span className="font-bold">{emails.length}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Template:</span>
-                  <Badge variant="outline">
+                  <p className="text-xs text-muted-foreground">Template</p>
+                  <Badge variant="outline" className="mt-1">
                     {selectedPreset === "INCOMPLETE_TEAM"
                       ? "Incomplete Team"
                       : selectedPreset === "INAUGURATION_INVITE"
@@ -437,19 +446,19 @@ export default function SendEmailPage() {
               >
                 {isPending ? (
                   <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Sending...
+                    <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                    Sending to {emails.length} recipients...
                   </>
                 ) : (
                   <>
-                    <Send className="w-4 h-4 mr-2" />
-                    Send Emails
+                    <Send className="w-5 h-5 mr-2" />
+                    Send {emails.length} Email{emails.length !== 1 ? "s" : ""}
                   </>
                 )}
               </Button>
-            </CardContent>
-          </Card>
-        </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Confirmation Dialog */}
