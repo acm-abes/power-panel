@@ -270,7 +270,7 @@ model MentorFeedback {
 model EmailJob {
   id         String         @id @default(cuid())
   campaignId String
-  userId     String
+  userId     String?
   email      String
   status     EmailJobStatus
   providerId String?
@@ -278,7 +278,6 @@ model EmailJob {
   createdAt  DateTime       @default(now())
 
   @@index([campaignId])
-  @@index([userId])
   @@index([status])
   @@map("email_job")
 }

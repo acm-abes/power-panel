@@ -8,9 +8,11 @@ import { sendMail } from "./mailer";
 import { prisma } from "@power/db";
 import { generateEmailContent } from "./templates";
 
+const CONCURRENCY = 2;
+
 console.log("📨 SAH 2.0 Email Worker starting...");
 console.log("📧 Email provider: Resend");
-console.log("🔄 Concurrency: 5 emails at a time");
+console.log(`🔄 Concurrency: ${CONCURRENCY} emails at a time`);
 console.log("");
 
 const worker = new Worker<SendEmailJob>(
@@ -22,17 +24,14 @@ const worker = new Worker<SendEmailJob>(
     console.log(`[${template}] ➡️ Sending to ${recipientName} <${to}>`);
 
     try {
-      // Generate email content based on template
       const { subject, html } = generateEmailContent(
         template,
         recipientName,
         templateData,
       );
 
-      // Send via Resend
       const result = await sendMail({ to, subject, html });
 
-      // Track in database (skip if user doesn't exist)
       try {
         await prisma.emailJob.create({
           data: {
@@ -50,7 +49,9 @@ const worker = new Worker<SendEmailJob>(
         );
       }
 
-      console.log(`[${template}] [${Date.now()}] ✅ Sent to ${to}`);
+      console.log(
+        `[${template}] [${new Date().toISOString()}] ✅ Sent to ${to}`,
+      );
     } catch (error) {
       console.error(`[${template}] ❌ Failed to send to ${to}:`, error);
       throw error;
@@ -58,7 +59,7 @@ const worker = new Worker<SendEmailJob>(
   },
   {
     connection,
-    concurrency: 2, // SAH 2.0: 5 emails at a time to respect rate limits
+    concurrency: CONCURRENCY,
   },
 );
 
@@ -70,7 +71,6 @@ worker.on("failed", async (job, err) => {
     err.message,
   );
 
-  // Try to track failure in database (but don't fail if user doesn't exist)
   try {
     await prisma.emailJob.create({
       data: {
