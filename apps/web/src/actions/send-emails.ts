@@ -528,8 +528,8 @@ export async function sendEmails(
 
           emailQueue.enqueue({
             to: email,
-            cc: customData.cc?.split(" "),
-            bcc: customData.bcc?.split(" "),
+            cc: customData.cc?.split(", "),
+            bcc: customData.bcc?.split(", "),
             subject: customData.subject,
             html: customData.html,
             userId,
