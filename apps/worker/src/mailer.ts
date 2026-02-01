@@ -1,9 +1,22 @@
 /** @format */
 
-import { Resend } from "resend";
+import { MailServiceFactory } from "./services/mail-service.factory";
+import { env } from "./env";
 
-export const resend = new Resend(process.env.RESEND_API_KEY!);
+try {
+  var mailService = MailServiceFactory.create(env.MAIL_PROVIDER);
+  console.log(`✉️ Mail service initialized: ${mailService.getProviderName()}`);
+} catch (error: any) {
+  console.error("❌ Failed to initialize mail service:", error.message);
+  throw error;
+}
 
+export { mailService };
+
+/**
+ * Legacy sendMail function for backward compatibility
+ * @deprecated Use mailService.sendEmail() directly for better error handling
+ */
 export async function sendMail({
   to,
   cc,
@@ -24,23 +37,22 @@ export async function sendMail({
     cid?: string;
   }>;
 }) {
-  // Convert attachments to Resend format
-  const resendAttachments = attachments?.map((att) => ({
-    filename: att.filename,
-    content: att.content, // Resend accepts base64 strings
-    ...(att.cid && { content_id: att.cid }), // For inline images
-  }));
-
-  return resend.emails.send({
-    from: process.env.EMAIL_FROM!,
+  const result = await mailService.sendEmail({
     to,
     cc,
     bcc,
     subject,
     html,
-    ...(resendAttachments &&
-      resendAttachments.length > 0 && {
-        attachments: resendAttachments,
-      }),
+    attachments,
   });
+
+  if (!result.success) {
+    throw new Error(result.error || "Failed to send email");
+  }
+
+  // Return Resend-compatible response for backward compatibility
+  return {
+    data: result.providerId ? { id: result.providerId } : null,
+    error: null,
+  };
 }

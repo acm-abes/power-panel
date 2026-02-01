@@ -1,16 +1,15 @@
 /** @format */
 
-import "dotenv/config";
 import { Worker } from "bullmq";
 import { EMAIL_QUEUE, SendEmailJob } from "@power/queue";
 import { connection } from "./redis";
-import { sendMail } from "./mailer";
+import { sendMail, mailService } from "./mailer";
 import { prisma } from "@power/db";
 
 const CONCURRENCY = 2;
 
 console.log("📨 SAH 2.0 Email Worker starting...");
-console.log("📧 Email provider: Resend");
+console.log(`📧 Email provider: ${mailService.getProviderName()}`);
 console.log(`🔄 Concurrency: ${CONCURRENCY} emails at a time`);
 console.log("🎯 Mode: Dumb sender (no template logic)");
 console.log("");

@@ -14,11 +14,13 @@
     "typescript": "^5"
   },
   "dependencies": {
+    "@aws-sdk/client-ses": "^3.980.0",
     "@power/db": "workspace:*",
     "@power/queue": "workspace:*",
     "bullmq": "^5.67.2",
     "dotenv": "^17.2.3",
     "ioredis": "^5.9.2",
-    "resend": "^6.9.1"
+    "resend": "^6.9.1",
+    "zod": "^3.22.4"
   }
 }
