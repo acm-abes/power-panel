@@ -18,8 +18,8 @@ import { Bar, BarChart, Cell, XAxis, YAxis } from "recharts";
 import { TrendingUp } from "lucide-react";
 
 interface ExperienceRoleChartsProps {
-  hackathonExpData: { experience: string; count: number; fill: string }[];
-  interestedRolesData: { role: string; count: number; fill: string }[];
+  hackathonExpData: { experience: string; count: number }[];
+  interestedRolesData: { role: string; count: number }[];
 }
 
 export function ExperienceRoleCharts({
@@ -29,7 +29,6 @@ export function ExperienceRoleCharts({
   const chartConfig = {
     count: {
       label: "Count",
-      color: "hsl(var(--chart-1))",
     },
   };
 
@@ -44,7 +43,7 @@ export function ExperienceRoleCharts({
           <CardDescription>Previous hackathon participation</CardDescription>
         </CardHeader>
         <CardContent>
-          <ChartContainer config={chartConfig} className="h-[300px] w-full">
+          <ChartContainer config={chartConfig} className="h-75 w-full">
             <BarChart data={hackathonExpData} layout="vertical">
               <XAxis type="number" />
               <YAxis
@@ -56,7 +55,7 @@ export function ExperienceRoleCharts({
               <ChartTooltip content={<ChartTooltipContent />} />
               <Bar dataKey="count" radius={[0, 8, 8, 0]}>
                 {hackathonExpData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.fill} />
+                  <Cell key={`cell-${index}`} />
                 ))}
               </Bar>
             </BarChart>
@@ -70,7 +69,7 @@ export function ExperienceRoleCharts({
           <CardDescription>Role preferences of participants</CardDescription>
         </CardHeader>
         <CardContent>
-          <ChartContainer config={chartConfig} className="h-[300px] w-full">
+          <ChartContainer config={chartConfig} className="h-75 w-full">
             <BarChart data={interestedRolesData} layout="vertical">
               <XAxis type="number" />
               <YAxis
@@ -82,7 +81,7 @@ export function ExperienceRoleCharts({
               <ChartTooltip content={<ChartTooltipContent />} />
               <Bar dataKey="count" radius={[0, 8, 8, 0]}>
                 {interestedRolesData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.fill} />
+                  <Cell key={`cell-${index}`} />
                 ))}
               </Bar>
             </BarChart>

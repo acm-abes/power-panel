@@ -18,7 +18,7 @@ import { Cell, Pie, PieChart } from "recharts";
 import { Shirt } from "lucide-react";
 
 interface TshirtChartProps {
-  data: { size: string; count: number; fill: string }[];
+  data: { size: string; count: number }[];
 }
 
 export function TshirtChart({ data }: TshirtChartProps) {
@@ -39,7 +39,7 @@ export function TshirtChart({ data }: TshirtChartProps) {
         <CardDescription>Size distribution for planning</CardDescription>
       </CardHeader>
       <CardContent>
-        <ChartContainer config={chartConfig} className="h-[300px] w-full">
+        <ChartContainer config={chartConfig} className="h-75 w-full">
           <PieChart>
             <ChartTooltip content={<ChartTooltipContent />} />
             <Pie
@@ -51,7 +51,7 @@ export function TshirtChart({ data }: TshirtChartProps) {
               label={(entry) => `${entry.payload.size}: ${entry.payload.count}`}
             >
               {data.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={entry.fill} />
+                <Cell key={`cell-${index}`} />
               ))}
             </Pie>
           </PieChart>

@@ -18,7 +18,7 @@ import { Bar, BarChart, Cell, XAxis, YAxis } from "recharts";
 import { Calendar } from "lucide-react";
 
 interface GraduationYearChartProps {
-  data: { year: string; count: number; fill: string }[];
+  data: { year: string; count: number }[];
 }
 
 export function GraduationYearChart({ data }: GraduationYearChartProps) {
@@ -39,14 +39,14 @@ export function GraduationYearChart({ data }: GraduationYearChartProps) {
         <CardDescription>Participants by graduation year</CardDescription>
       </CardHeader>
       <CardContent>
-        <ChartContainer config={chartConfig} className="h-[300px] w-full">
+        <ChartContainer config={chartConfig} className="h-75 w-full">
           <BarChart data={data}>
             <XAxis dataKey="year" />
             <YAxis />
             <ChartTooltip content={<ChartTooltipContent />} />
             <Bar dataKey="count" radius={[8, 8, 0, 0]}>
               {data.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={entry.fill} />
+                <Cell key={`cell-${index}`} />
               ))}
             </Bar>
           </BarChart>

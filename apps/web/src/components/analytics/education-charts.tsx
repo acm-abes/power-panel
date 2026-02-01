@@ -18,8 +18,8 @@ import { Cell, Pie, PieChart } from "recharts";
 import { Award, GraduationCap } from "lucide-react";
 
 interface EducationChartsProps {
-  educationLevelData: { level: string; count: number; fill: string }[];
-  degreeTypeData: { degree: string; count: number; fill: string }[];
+  educationLevelData: { level: string; count: number }[];
+  degreeTypeData: { degree: string; count: number }[];
 }
 
 export function EducationCharts({
@@ -29,7 +29,6 @@ export function EducationCharts({
   const chartConfig = {
     count: {
       label: "Count",
-      color: "hsl(var(--chart-1))",
     },
   };
 
@@ -58,7 +57,7 @@ export function EducationCharts({
                 }
               >
                 {educationLevelData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.fill} />
+                  <Cell key={`cell-${index}`} />
                 ))}
               </Pie>
             </PieChart>
@@ -89,7 +88,7 @@ export function EducationCharts({
                 }
               >
                 {degreeTypeData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.fill} />
+                  <Cell key={`cell-${index}`} />
                 ))}
               </Pie>
             </PieChart>

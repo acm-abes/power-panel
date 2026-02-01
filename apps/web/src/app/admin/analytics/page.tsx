@@ -43,50 +43,44 @@ export default async function AnalyticsPage() {
   // Prepare chart data
   const graduationYearChartData = Object.entries(stats.graduationYears)
     .sort(([a], [b]) => a.localeCompare(b))
-    .map(([year, count], index) => ({
+    .map(([year, count]) => ({
       year,
       count,
-      fill: `var(--color-chart-${(index % 5) + 1})`,
     }));
 
   const educationLevelChartData = Object.entries(stats.educationLevels)
     .sort(([, a], [, b]) => b - a)
-    .map(([level, count], index) => ({
+    .map(([level, count]) => ({
       level: level.replace("_", " "),
       count,
-      fill: `var(--color-chart-${(index % 5) + 1})`,
     }));
 
   const degreeTypeChartData = Object.entries(stats.degreeTypes)
     .sort(([, a], [, b]) => b - a)
-    .map(([degree, count], index) => ({
+    .map(([degree, count]) => ({
       degree: degree.replace("_", " "),
       count,
-      fill: `var(--color-chart-${(index % 5) + 1})`,
     }));
 
   const hackathonExpChartData = Object.entries(stats.hackathonExp)
     .sort(([, a], [, b]) => b - a)
-    .map(([exp, count], index) => ({
+    .map(([exp, count]) => ({
       experience: exp.replace(/_/g, " "),
       count,
-      fill: `var(--color-chart-${(index % 5) + 1})`,
     }));
 
   const interestedRolesChartData = Object.entries(stats.interestedRoles)
     .sort(([, a], [, b]) => b - a)
-    .map(([role, count], index) => ({
+    .map(([role, count]) => ({
       role: role.replace(/_/g, " "),
       count,
-      fill: `var(--color-chart-${(index % 5) + 1})`,
     }));
 
   const teamSizeChartData = Object.entries(stats.teamSizeDistribution)
     .sort(([a], [b]) => Number(a) - Number(b))
-    .map(([size, count], index) => ({
+    .map(([size, count]) => ({
       size: `${size} member${Number(size) !== 1 ? "s" : ""}`,
       count,
-      fill: `var(--color-chart-${(index % 5) + 1})`,
     }));
 
   const tshirtChartData = Object.entries(stats.tshirtSizes)
@@ -94,10 +88,9 @@ export default async function AnalyticsPage() {
       const order = ["XS", "S", "M", "L", "XL", "XXL", "XXXL"];
       return order.indexOf(a) - order.indexOf(b);
     })
-    .map(([size, count], index) => ({
+    .map(([size, count]) => ({
       size,
       count,
-      fill: `var(--color-chart-${(index % 5) + 1})`,
     }));
 
   return (
