@@ -68,16 +68,18 @@ export async function getAnalyticsData() {
   // Top colleges
   const colleges = analytics.reduce(
     (acc, d) => {
-      const college = d.collegeName.trim();
+      let college = d.collegeName.trim();
+      // Normalize ABES variants to "ABES EC"
+      if (college.toUpperCase().includes("ABES")) {
+        college = "ABES EC";
+      }
       acc[college] = (acc[college] || 0) + 1;
       return acc;
     },
     {} as Record<string, number>,
   );
 
-  const topColleges = Object.entries(colleges)
-    .sort(([, a], [, b]) => b - a)
-    .slice(0, 10);
+  const topColleges = Object.entries(colleges).sort(([, a], [, b]) => b - a);
 
   // Hackathon experience
   const hackathonExp = analytics.reduce(

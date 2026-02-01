@@ -22,6 +22,7 @@ import { EducationCharts } from "@/components/analytics/education-charts";
 import { ExperienceRoleCharts } from "@/components/analytics/experience-role-charts";
 import { TeamSizeChart } from "@/components/analytics/team-size-chart";
 import { TshirtChart } from "@/components/analytics/tshirt-chart";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 export default async function AnalyticsPage() {
   const session = await auth.api.getSession({
@@ -211,31 +212,33 @@ export default async function AnalyticsPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
-              {stats.topColleges.map(([college, count], index) => (
-                <div key={college}>
-                  <div className="flex justify-between mb-1">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium text-muted-foreground">
-                        #{index + 1}
+            <ScrollArea className="h-100 pr-4">
+              <div>
+                {stats.topColleges.map(([college, count], index) => (
+                  <div key={college} className="py-2">
+                    <div className="flex justify-between mb-1">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium text-muted-foreground">
+                          #{index + 1}
+                        </span>
+                        <span className="text-sm">{college}</span>
+                      </div>
+                      <span className="text-sm font-medium">
+                        {count} ({((count / stats.total) * 100).toFixed(1)}%)
                       </span>
-                      <span className="text-sm">{college}</span>
                     </div>
-                    <span className="text-sm font-medium">
-                      {count} ({((count / stats.total) * 100).toFixed(1)}%)
-                    </span>
+                    <div className="h-2 bg-secondary rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-primary"
+                        style={{
+                          width: `${(count / stats.total) * 100}%`,
+                        }}
+                      />
+                    </div>
                   </div>
-                  <div className="h-2 bg-secondary rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-primary"
-                      style={{
-                        width: `${(count / stats.total) * 100}%`,
-                      }}
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            </ScrollArea>
           </CardContent>
         </Card>
 
@@ -264,30 +267,33 @@ export default async function AnalyticsPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-3">
-                {Object.entries(stats.dietaryRestrictions)
-                  .sort(([, a], [, b]) => b - a)
-                  .map(([restriction, count]) => (
-                    <div key={restriction}>
-                      <div className="flex justify-between mb-1">
-                        <span className="text-sm capitalize">
-                          {restriction}
-                        </span>
-                        <span className="text-sm font-medium">
-                          {count} ({((count / stats.total) * 100).toFixed(1)}%)
-                        </span>
+              <ScrollArea className="h-100 pr-4">
+                <div className="space-y-3">
+                  {Object.entries(stats.dietaryRestrictions)
+                    .sort(([, a], [, b]) => b - a)
+                    .map(([restriction, count]) => (
+                      <div key={restriction}>
+                        <div className="flex justify-between mb-1">
+                          <span className="text-sm capitalize">
+                            {restriction}
+                          </span>
+                          <span className="text-sm font-medium">
+                            {count} ({((count / stats.total) * 100).toFixed(1)}
+                            %)
+                          </span>
+                        </div>
+                        <div className="h-2 bg-secondary rounded-full overflow-hidden">
+                          <div
+                            className="h-full bg-primary"
+                            style={{
+                              width: `${(count / stats.total) * 100}%`,
+                            }}
+                          />
+                        </div>
                       </div>
-                      <div className="h-2 bg-secondary rounded-full overflow-hidden">
-                        <div
-                          className="h-full bg-primary"
-                          style={{
-                            width: `${(count / stats.total) * 100}%`,
-                          }}
-                        />
-                      </div>
-                    </div>
-                  ))}
-              </div>
+                    ))}
+                </div>
+              </ScrollArea>
             </CardContent>
           </Card>
         </div>
