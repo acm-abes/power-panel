@@ -3,7 +3,7 @@
 import { Worker } from "bullmq";
 import { EMAIL_QUEUE, SendEmailJob } from "@power/queue";
 import { connection } from "./redis";
-import { sendMail, mailService } from "./mailer";
+import { mailService } from "./mailer";
 import { prisma } from "@power/db";
 
 const CONCURRENCY = 2;
@@ -23,7 +23,7 @@ const worker = new Worker<SendEmailJob>(
     console.log(`➡️ Sending to ${to} - ${subject}`);
 
     try {
-      const result = await sendMail({
+      const result = await mailService.sendEmail({
         to,
         cc,
         bcc,
@@ -39,7 +39,7 @@ const worker = new Worker<SendEmailJob>(
             userId,
             email: to,
             status: "SENT",
-            providerId: result.data?.id ?? null,
+            providerId: result.providerId ?? null,
           },
         });
       } catch (dbError: any) {
