@@ -23,6 +23,14 @@ export function useEmailSender() {
   const [customBcc, setCustomBcc] = useState<string[]>([]);
   const [customSubject, setCustomSubject] = useState("");
   const [customHtml, setCustomHtml] = useState("");
+  const [customAttachments, setCustomAttachments] = useState<
+    Array<{
+      filename: string;
+      content: string;
+      contentType: string;
+      cid: string;
+    }>
+  >([]);
 
   const addEmail = (email: string) => {
     const trimmedEmail = email.trim().toLowerCase();
@@ -97,6 +105,19 @@ export function useEmailSender() {
     setCustomBcc((prev) => prev.filter((e) => e !== email));
   };
 
+  const addAttachment = (attachment: {
+    filename: string;
+    content: string;
+    contentType: string;
+    cid: string;
+  }) => {
+    setCustomAttachments((prev) => [...prev, attachment]);
+  };
+
+  const removeAttachment = (cid: string) => {
+    setCustomAttachments((prev) => prev.filter((a) => a.cid !== cid));
+  };
+
   const loadEmailsByOption = async (option: EmailListOption) => {
     startTransition(async () => {
       const response = await getEmailsByOption(option);
@@ -143,10 +164,14 @@ export function useEmailSender() {
               bcc: customBcc.length > 0 ? customBcc.join(", ") : undefined,
               subject: customSubject,
               html: customHtml,
+              attachments:
+                customAttachments.length > 0 ? customAttachments : undefined,
             }
           : {
               cc: customCc.length > 0 ? customCc.join(", ") : undefined,
               bcc: customBcc.length > 0 ? customBcc.join(", ") : undefined,
+              attachments:
+                customAttachments.length > 0 ? customAttachments : undefined,
             };
 
       const response = await sendEmails(emails, selectedPreset, customData);
@@ -172,6 +197,7 @@ export function useEmailSender() {
     customBcc,
     customSubject,
     customHtml,
+    customAttachments,
     addEmail,
     removeEmail,
     clearEmails,
@@ -179,6 +205,8 @@ export function useEmailSender() {
     removeCcEmail,
     addBccEmail,
     removeBccEmail,
+    addAttachment,
+    removeAttachment,
     setSelectedPreset,
     setCustomSubject,
     setCustomHtml,

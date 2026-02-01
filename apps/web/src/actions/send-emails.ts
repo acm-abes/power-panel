@@ -319,6 +319,12 @@ export async function sendEmails(
     bcc?: string;
     subject?: string;
     html?: string;
+    attachments?: Array<{
+      filename: string;
+      content: string;
+      contentType: string;
+      cid?: string;
+    }>;
   },
 ) {
   try {
@@ -416,6 +422,7 @@ export async function sendEmails(
             bcc: customData?.bcc?.split(", "),
             subject,
             html,
+            attachments: customData?.attachments,
             userId,
             campaignId,
           });
@@ -487,6 +494,7 @@ export async function sendEmails(
             bcc: customData?.bcc?.split(", "),
             subject,
             html,
+            attachments: customData?.attachments,
             userId,
             campaignId,
           });
@@ -532,6 +540,7 @@ export async function sendEmails(
             bcc: customData.bcc?.split(", "),
             subject: customData.subject,
             html: customData.html,
+            attachments: customData.attachments,
             userId,
             campaignId,
           });

@@ -42,6 +42,7 @@ import {
 } from "lucide-react";
 import { EmailPreset } from "@/actions/send-emails";
 import { EmailTagInput } from "@/components/email-tag-input";
+import { AttachmentUpload } from "@/components/attachment-upload";
 
 export default function SendEmailPage() {
   const {
@@ -52,6 +53,7 @@ export default function SendEmailPage() {
     customBcc,
     customSubject,
     customHtml,
+    customAttachments,
     addEmail,
     removeEmail,
     clearEmails,
@@ -59,6 +61,8 @@ export default function SendEmailPage() {
     removeCcEmail,
     addBccEmail,
     removeBccEmail,
+    addAttachment,
+    removeAttachment,
     setSelectedPreset,
     setCustomSubject,
     setCustomHtml,
@@ -234,6 +238,45 @@ export default function SendEmailPage() {
                       disabled={isPending}
                       className="mt-2 font-mono text-xs"
                       rows={10}
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium">
+                      Attachments (Optional)
+                    </label>
+                    <div className="mt-2">
+                      <AttachmentUpload
+                        attachments={customAttachments}
+                        onAdd={addAttachment}
+                        onRemove={removeAttachment}
+                        disabled={isPending}
+                      />
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-2">
+                      📎 Upload images to embed inline using{" "}
+                      <code className="bg-muted px-1 py-0.5 rounded">
+                        &lt;img src=&quot;cid:attachment_id&quot; /&gt;
+                      </code>
+                    </p>
+                  </div>
+                </div>
+              </>
+            )}
+
+            {/* Attachments for preset emails too */}
+            {selectedPreset !== "CUSTOM" && (
+              <>
+                <Separator className="my-6" />
+                <div>
+                  <label className="text-sm font-medium">
+                    Attachments (Optional)
+                  </label>
+                  <div className="mt-2">
+                    <AttachmentUpload
+                      attachments={customAttachments}
+                      onAdd={addAttachment}
+                      onRemove={removeAttachment}
+                      disabled={isPending}
                     />
                   </div>
                 </div>
@@ -466,17 +509,19 @@ export default function SendEmailPage() {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Confirm Email Send</AlertDialogTitle>
-            <AlertDialogDescription>
+            <AlertDialogDescription className="space-y-3">
               Are you sure you want to send emails to {emails.length} recipient
               {emails.length !== 1 ? "s" : ""}?
-              <div className="mt-3 p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-md">
-                <p className="text-sm text-yellow-800 dark:text-yellow-200 flex items-center gap-2">
-                  <AlertTriangle className="w-4 h-4" />
-                  This action cannot be undone. Emails will be sent immediately.
-                </p>
-              </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
+          <div className="px-6 pb-2">
+            <div className="p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-md">
+              <span className="text-sm text-yellow-800 dark:text-yellow-200 flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4" />
+                This action cannot be undone. Emails will be sent immediately.
+              </span>
+            </div>
+          </div>
           <AlertDialogFooter>
             <Button
               variant="outline"

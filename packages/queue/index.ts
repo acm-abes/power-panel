@@ -12,6 +12,12 @@ export type SendEmailJob = {
   bcc?: string[];
   subject: string;
   html: string;
+  attachments?: Array<{
+    filename: string;
+    content: string; // base64 encoded
+    contentType: string;
+    cid?: string; // For inline images
+  }>;
 
   // Tracking data
   campaignId: string;

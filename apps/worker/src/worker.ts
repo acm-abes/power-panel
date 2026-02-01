@@ -18,12 +18,20 @@ console.log("");
 const worker = new Worker<SendEmailJob>(
   EMAIL_QUEUE,
   async (job) => {
-    const { to, cc, bcc, subject, html, userId, campaignId } = job.data;
+    const { to, cc, bcc, subject, html, attachments, userId, campaignId } =
+      job.data;
 
     console.log(`➡️ Sending to ${to} - ${subject}`);
 
     try {
-      const result = await sendMail({ to, cc, bcc, subject, html });
+      const result = await sendMail({
+        to,
+        cc,
+        bcc,
+        subject,
+        html,
+        attachments,
+      });
 
       try {
         await prisma.emailJob.create({
