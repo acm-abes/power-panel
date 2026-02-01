@@ -7,7 +7,6 @@ const CommonEnvSchema = z.object({
   REDIS_URL: z.string().default("redis://localhost:6379"),
 });
 
-// Resend provider environment schema
 const resendEnvSchema = z.object({
   MAIL_PROVIDER: z.literal("resend"),
   EMAIL_FROM: z.string(),
@@ -16,7 +15,6 @@ const resendEnvSchema = z.object({
     .min(1, "RESEND_API_KEY is required when using Resend provider"),
 });
 
-// SES provider environment schema
 const sesEnvSchema = z.object({
   MAIL_PROVIDER: z.literal("ses"),
   EMAIL_FROM: z.string(),
@@ -27,7 +25,6 @@ const sesEnvSchema = z.object({
   AWS_SECRET_ACCESS_KEY: z.string().optional(),
 });
 
-// Discriminated union based on MAIL_PROVIDER
 const envSchema = z.intersection(
   CommonEnvSchema,
   z
@@ -58,8 +55,6 @@ function validateEnv() {
   return result.data;
 }
 
-// Validate and export the environment
 export const env = validateEnv();
 
-// Export types for TypeScript
 export type Env = typeof env;

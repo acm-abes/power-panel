@@ -22,11 +22,10 @@ export class ResendMailService implements IMailService {
 
   async sendEmail(params: SendEmailParams): Promise<SendEmailResult> {
     try {
-      // Convert attachments to Resend format
       const resendAttachments = params.attachments?.map((att) => ({
         filename: att.filename,
-        content: att.content, // Resend accepts base64 strings
-        ...(att.cid && { content_id: att.cid }), // For inline images
+        content: att.content,
+        ...(att.cid && { content_id: att.cid }),
       }));
 
       const result = await this.resend.emails.send({

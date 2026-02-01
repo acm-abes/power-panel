@@ -2,9 +2,9 @@
 
 export interface EmailAttachment {
   filename: string;
-  content: string; // base64 encoded
+  content: string;
   contentType?: string;
-  cid?: string; // for inline images
+  cid?: string;
 }
 
 export interface SendEmailParams {
