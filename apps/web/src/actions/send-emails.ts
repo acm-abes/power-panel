@@ -3,12 +3,12 @@
 "use server";
 
 import { prisma } from "@power/db";
-import { emailQueue } from "@/lib/queue";
 import { randomUUID } from "crypto";
 import {
   generateIncompleteTeamEmail,
   generateInaugurationInviteEmail,
 } from "@/lib/email-templates";
+import { enqueueSendMail } from "@power/job-runtime/enqueueSendMail";
 
 export type EmailPreset = "INCOMPLETE_TEAM" | "INAUGURATION_INVITE" | "CUSTOM";
 
@@ -380,61 +380,56 @@ export async function sendEmails(
           recipientDetails.map((r) => [r.userEmail, r.userName]),
         );
 
-        // Queue job for EVERY email provided, no filtering
-        let jobCount = 0;
+        const queuedJobs = await Promise.all(
+          emails.map(async (email) => {
+            const userId = userIdMap.get(email);
 
-        for (const email of emails) {
-          const userId = userIdMap.get(email);
-          if (!userId) {
-            console.warn(`No user ID found for ${email}, skipping`);
-            continue;
-          }
+            if (!userId) {
+              console.warn(`No user ID found for ${email}, skipping`);
+              return;
+            }
 
-          const recipientName = recipientMap.get(email) || "Participant";
-          const member = tempMembers.find((m) => m.userEmail === email);
-          const team = member
-            ? teams.find((t) => t.id === member.teamId)
-            : null;
+            const recipientName = recipientMap.get(email) || "Participant";
+            const member = tempMembers.find((m) => m.userEmail === email);
+            const team = member
+              ? teams.find((t) => t.id === member.teamId)
+              : null;
 
-          // Use team data if available, otherwise use defaults
-          const teamData = team
-            ? {
-                teamName: team.name,
-                teamCode: team.teamCode,
-                membersInTeam: membersByTeam[team.id]?.length || 1,
-              }
-            : {
-                teamName: "Your Team",
-                teamCode: "N/A",
-                membersInTeam: 1,
-              };
+            const teamData = team
+              ? {
+                  teamName: team.name,
+                  teamCode: team.teamCode,
+                  membersInTeam: membersByTeam[team.id]?.length || 1,
+                }
+              : {
+                  teamName: "Your Team",
+                  teamCode: "N/A",
+                  membersInTeam: 1,
+                };
 
-          // Generate email content in web app
-          const { subject, html } = generateIncompleteTeamEmail(
-            recipientName,
-            teamData,
-          );
+            const { subject, html } = generateIncompleteTeamEmail(
+              recipientName,
+              teamData,
+            );
 
-          // Enqueue with generated content
-          emailQueue.enqueue({
-            to: email,
-            cc: customData?.cc?.split(", "),
-            bcc: customData?.bcc?.split(", "),
-            subject,
-            html,
-            attachments: customData?.attachments,
-            userId,
-            campaignId,
-          });
-
-          jobCount++;
-        }
+            return enqueueSendMail({
+              to: email,
+              cc: customData?.cc?.split(", "),
+              bcc: customData?.bcc?.split(", "),
+              subject,
+              html,
+              attachments: customData?.attachments,
+              userId,
+              campaignId,
+            });
+          }),
+        );
 
         return {
           success: true,
-          sent: jobCount,
+          sent: queuedJobs.length,
           failed: 0,
-          message: `Queued ${jobCount} emails for delivery`,
+          message: `Queued ${queuedJobs.length} emails for delivery`,
         };
       }
 
@@ -468,45 +463,40 @@ export async function sendEmails(
           }
         }
 
-        let jobCount = 0;
+        const queuedJobs = await Promise.all(
+          emails.map(async (email) => {
+            const user = userMap.get(email);
 
-        for (const email of emails) {
-          const user = userMap.get(email);
+            const recipientName = user?.name || "there";
+            const userId = user?.id || `unknown-${email}`;
 
-          // Use "there" as fallback if no name found
-          const recipientName = user?.name || "there";
-          const userId = user?.id || `unknown-${email}`;
+            const { subject, html } = generateInaugurationInviteEmail(
+              recipientName,
+              {
+                eventDate: "1st February 2026",
+                eventTime: "9:00 AM onwards",
+                venue: "YouTube",
+              },
+            );
 
-          // Generate email content in web app
-          const { subject, html } = generateInaugurationInviteEmail(
-            recipientName,
-            {
-              eventDate: "1st February 2026",
-              eventTime: "9:00 AM onwards",
-              venue: "YouTube",
-            },
-          );
-
-          // Enqueue with generated content
-          emailQueue.enqueue({
-            to: email,
-            cc: customData?.cc?.split(", "),
-            bcc: customData?.bcc?.split(", "),
-            subject,
-            html,
-            attachments: customData?.attachments,
-            userId,
-            campaignId,
-          });
-
-          jobCount++;
-        }
+            return enqueueSendMail({
+              to: email,
+              cc: customData?.cc?.split(", "),
+              bcc: customData?.bcc?.split(", "),
+              subject,
+              html,
+              attachments: customData?.attachments,
+              userId,
+              campaignId,
+            });
+          }),
+        );
 
         return {
           success: true,
-          sent: jobCount,
+          sent: queuedJobs.length,
           failed: 0,
-          message: `Queued ${jobCount} inauguration invites for delivery`,
+          message: `Queued ${queuedJobs.length} inauguration invites for delivery`,
         };
       }
 
@@ -522,37 +512,35 @@ export async function sendEmails(
 
         const campaignId = randomUUID();
 
-        // Try to get user IDs from both tables
         const users = await prisma.user.findMany({
           where: { email: { in: emails } },
           select: { id: true, email: true },
         });
+
         const userIdMap = new Map(users.map((u) => [u.email, u.id]));
 
-        let jobCount = 0;
+        const queuedJobs = await Promise.all(
+          emails.map(async (email) => {
+            const userId = userIdMap.get(email) || `unknown-${email}`;
 
-        for (const email of emails) {
-          const userId = userIdMap.get(email) || `unknown-${email}`;
-
-          emailQueue.enqueue({
-            to: email,
-            cc: customData.cc?.split(", "),
-            bcc: customData.bcc?.split(", "),
-            subject: customData.subject,
-            html: customData.html,
-            attachments: customData.attachments,
-            userId,
-            campaignId,
-          });
-
-          jobCount++;
-        }
+            return enqueueSendMail({
+              to: email,
+              cc: customData.cc?.split(", "),
+              bcc: customData.bcc?.split(", "),
+              subject: customData.subject!,
+              html: customData.html!,
+              attachments: customData.attachments,
+              userId,
+              campaignId,
+            });
+          }),
+        );
 
         return {
           success: true,
-          sent: jobCount,
+          sent: queuedJobs.length,
           failed: 0,
-          message: `Queued ${jobCount} custom emails for delivery`,
+          message: `Queued ${queuedJobs.length} custom emails for delivery`,
         };
       }
 
