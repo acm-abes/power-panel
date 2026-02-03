@@ -3,7 +3,7 @@
 import { IMailService } from "./mail-service.interface";
 import { ResendMailService } from "./resend-mail.service";
 import { SESMailService } from "./ses-mail.service";
-import { env } from "../env";
+import { env } from "../config/env";
 
 export type MailProvider = "resend" | "ses";
 

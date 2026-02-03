@@ -4,7 +4,7 @@ import {
   IMailService,
   SendEmailParams,
   SendEmailResult,
-} from "./mail-service.interface";
+} from "../interfaces/mail-service.interface";
 import { SESClient, SendRawEmailCommand } from "@aws-sdk/client-ses";
 
 /**

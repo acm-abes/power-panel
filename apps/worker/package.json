@@ -16,7 +16,8 @@
   "dependencies": {
     "@aws-sdk/client-ses": "^3.980.0",
     "@power/db": "workspace:*",
-    "@power/queue": "workspace:*",
+    "@power/jobs": "workspace:*",
+    "@power/job-runtime": "workspace:*",
     "bullmq": "^5.67.2",
     "dotenv": "^17.2.3",
     "ioredis": "^5.9.2",

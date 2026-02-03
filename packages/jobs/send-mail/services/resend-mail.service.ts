@@ -5,7 +5,7 @@ import {
   IMailService,
   SendEmailParams,
   SendEmailResult,
-} from "./mail-service.interface";
+} from "../interfaces/mail-service.interface";
 
 export class ResendMailService implements IMailService {
   private resend: Resend;
