@@ -3,24 +3,19 @@
 import { Worker } from "bullmq";
 import { prisma } from "@power/db";
 import { connection } from "@power/job-runtime/connection";
-import {
-  SEND_MAIL_JOB,
-  SendMailPayload,
-  sendMailHandler,
-} from "@power/jobs/send-mail";
-
-const CONCURRENCY = 2;
+import { SEND_MAIL_JOB, sendMailHandler } from "@power/jobs/send-mail";
+import { CONCURRENCY, QUEUE_NAME } from "./config";
 
 console.log("📨 SAH 2.0 Email Worker starting...");
 console.log(`🔄 Concurrency: ${CONCURRENCY} emails at a time`);
 console.log("");
 
 const worker = new Worker(
-  "master-queue",
+  QUEUE_NAME,
   async (job) => {
     switch (job.name) {
       case SEND_MAIL_JOB:
-        await sendMailHandler(job.data as SendMailPayload);
+        await sendMailHandler(job.data);
         break;
     }
   },
