@@ -4,8 +4,8 @@ import { MailProvider, MailServiceFactory } from "../factory";
 
 export * from "../interface";
 export * from "../factory";
-export * from "./resend-mail.service";
-export * from "./ses-mail.service";
+export * from "./resend.mail";
+export * from "./ses.mail";
 
 try {
   var mailService = MailServiceFactory.create(
