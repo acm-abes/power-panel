@@ -43,6 +43,7 @@ import {
 import { EmailPreset } from "@/actions/send-emails";
 import { EmailTagInput } from "@/components/email-tag-input";
 import { AttachmentUpload } from "@/components/attachment-upload";
+import { Page, PageContent, PageHeading } from "@/components/page";
 
 export default function SendEmailPage() {
   const {
@@ -97,18 +98,13 @@ export default function SendEmailPage() {
   };
 
   return (
-    <div className="container mx-auto p-6 max-w-6xl">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold flex items-center gap-2">
-          <Mail className="w-8 h-8" />
-          Email Management
-        </h1>
-        <p className="text-muted-foreground mt-2">
-          Send emails to participants, judges, mentors, or custom lists
-        </p>
-      </div>
+    <Page>
+      <PageHeading
+        title="Send Custom Emails"
+        description="Send emails to participants, judges, mentors, or custom lists"
+      />
 
-      <div className="space-y-6">
+      <PageContent>
         {/* Step 1: Email Configuration */}
         <Card>
           <CardHeader>
@@ -502,7 +498,7 @@ export default function SendEmailPage() {
             </div>
           </CardContent>
         </Card>
-      </div>
+      </PageContent>
 
       {/* Confirmation Dialog */}
       <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
@@ -533,6 +529,6 @@ export default function SendEmailPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </Page>
   );
 }
