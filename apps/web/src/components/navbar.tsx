@@ -6,6 +6,7 @@ import { getUserRoles } from "@/lib/get-user-roles";
 import { headers } from "next/headers";
 import { NavLinks } from "./nav-links";
 import { UserMenu } from "./user-menu";
+import { ThemeDropdown } from "./theme-dropdown";
 
 export async function Navbar() {
   const session = await auth.api.getSession({
@@ -34,10 +35,13 @@ export async function Navbar() {
             />
           </div>
 
-          <UserMenu
-            userName={session.user.name || "User"}
-            userRoles={userRoles}
-          />
+          <div className="flex items-center gap-4">
+            <ThemeDropdown />
+            <UserMenu
+              userName={session.user.name || "User"}
+              userRoles={userRoles}
+            />
+          </div>
         </div>
       </div>
     </nav>
