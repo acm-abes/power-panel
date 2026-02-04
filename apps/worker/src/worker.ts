@@ -8,7 +8,7 @@ import { CONCURRENCY, QUEUE_NAME } from "./config/queue";
 import { UPLOAD_JOB, uploadHandler } from "@power/jobs/upload";
 
 console.log("📨 SAH 2.0 Email Worker starting...");
-console.log(`🔄 Concurrency: ${CONCURRENCY} emails at a time`);
+console.log(`🔄 Concurrency: ${CONCURRENCY} jobs at a time`);
 console.log("");
 
 const worker = new Worker(
