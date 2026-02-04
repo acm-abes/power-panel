@@ -1,5 +1,6 @@
 {
-  "name": "@power/jobs",
+  "name": "@power/storage",
+  "version": "1.0.0",
   "module": "index.ts",
   "type": "module",
   "private": true,
@@ -7,7 +8,6 @@
     "@types/bun": "latest"
   },
   "dependencies": {
-    "@power/mails": "workspace:*",
-    "@power/storage": "workspace:*"
+    "zod": "^4.3.6"
   }
 }

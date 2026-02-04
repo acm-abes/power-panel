@@ -1,5 +1,5 @@
 {
-  "name": "@power/jobs",
+  "name": "@power/mails",
   "module": "index.ts",
   "type": "module",
   "private": true,
@@ -7,7 +7,9 @@
     "@types/bun": "latest"
   },
   "dependencies": {
-    "@power/mails": "workspace:*",
-    "@power/storage": "workspace:*"
+    "@aws-sdk/client-ses": "^3.981.0",
+    "resend": "^6.9.1",
+    "zod": "^4.3.6",
+    "@power/db": "workspace:*"
   }
 }
