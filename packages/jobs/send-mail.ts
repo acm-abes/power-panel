@@ -1,6 +1,6 @@
 /** @format */
 
-import { mailService } from "../mails/providers";
+import { mailService } from "../mails";
 import { prisma } from "@power/db";
 
 export const SEND_MAIL_JOB = "sah-mails";

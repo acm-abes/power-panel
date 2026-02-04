@@ -1,11 +1,11 @@
 /** @format */
 
-import { MailProvider, MailServiceFactory } from "../factory";
+import { MailProvider, MailServiceFactory } from "./factory";
 
-export * from "../interface";
-export * from "../factory";
-export * from "./resend.mail";
-export * from "./ses.mail";
+export * from "./interface";
+export * from "./factory";
+export * from "./providers/resend.mail";
+export * from "./providers/ses.mail";
 
 try {
   var mailService = MailServiceFactory.create(
