@@ -107,9 +107,29 @@
     "packages/jobs": {
       "name": "@power/jobs",
       "dependencies": {
+        "@power/mails": "workspace:*",
+        "@power/storage": "workspace:*",
+      },
+      "devDependencies": {
+        "@types/bun": "latest",
+      },
+    },
+    "packages/mails": {
+      "name": "@power/mails",
+      "dependencies": {
         "@aws-sdk/client-ses": "^3.981.0",
         "@power/db": "workspace:*",
         "resend": "^6.9.1",
+        "zod": "^4.3.6",
+      },
+      "devDependencies": {
+        "@types/bun": "latest",
+      },
+    },
+    "packages/storage": {
+      "name": "@power/storage",
+      "version": "1.0.0",
+      "dependencies": {
         "zod": "^4.3.6",
       },
       "devDependencies": {
@@ -509,6 +529,10 @@
     "@power/job-runtime": ["@power/job-runtime@workspace:packages/job-runtime"],
 
     "@power/jobs": ["@power/jobs@workspace:packages/jobs"],
+
+    "@power/mails": ["@power/mails@workspace:packages/mails"],
+
+    "@power/storage": ["@power/storage@workspace:packages/storage"],
 
     "@power/web": ["@power/web@workspace:apps/web"],
 

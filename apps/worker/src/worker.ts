@@ -4,7 +4,7 @@ import { Worker } from "bullmq";
 import { prisma } from "@power/db";
 import { connection } from "@power/job-runtime/connection";
 import { SEND_MAIL_JOB, sendMailHandler } from "@power/jobs/send-mail";
-import { CONCURRENCY, QUEUE_NAME } from "./config";
+import { CONCURRENCY, QUEUE_NAME } from "./config/queue";
 
 console.log("📨 SAH 2.0 Email Worker starting...");
 console.log(`🔄 Concurrency: ${CONCURRENCY} emails at a time`);
