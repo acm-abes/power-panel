@@ -1,10 +1,6 @@
 /** @format */
 
-import {
-  IMailService,
-  SendEmailParams,
-  SendEmailResult,
-} from "../interfaces/mail-service.interface";
+import { IMailService, SendEmailParams, SendEmailResult } from "../interface";
 import { SESClient, SendRawEmailCommand } from "@aws-sdk/client-ses";
 
 /**

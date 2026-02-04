@@ -55,6 +55,6 @@ function validateEnv() {
   return result.data;
 }
 
-export const mailsEnv = validateEnv();
+export const env = validateEnv();
 
-export type MailsEnv = typeof mailsEnv;
+export type MailsEnv = typeof env;

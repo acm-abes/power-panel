@@ -1,9 +1,7 @@
 /** @format */
 
-import { IMailService } from "./mail-service.interface";
-import { ResendMailService } from "./resend-mail.service";
-import { SESMailService } from "./ses-mail.service";
-import { env } from "../config/env";
+import { ResendMailService, SESMailService, IMailService } from "./services";
+import { env } from "./config/mails";
 
 export type MailProvider = "resend" | "ses";
 

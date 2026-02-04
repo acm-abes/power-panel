@@ -1,15 +1,16 @@
 /** @format */
 
-import { env } from "../config/env";
-import { MailServiceFactory } from "../factories/mail-service.factory";
+import { MailProvider, MailServiceFactory } from "../mail-service.factory";
 
-export * from "../interfaces/mail-service.interface";
-export * from "../factories/mail-service.factory";
+export * from "../interface";
+export * from "../mail-service.factory";
 export * from "./resend-mail.service";
 export * from "./ses-mail.service";
 
 try {
-  var mailService = MailServiceFactory.create(env.MAIL_PROVIDER);
+  var mailService = MailServiceFactory.create(
+    process.env.MAIL_PROVIDER as MailProvider,
+  );
   console.log(`✉️ Mail service initialized: ${mailService.getProviderName()}`);
 } catch (error: any) {
   console.error("❌ Failed to initialize mail service:", error.message);

@@ -5,6 +5,7 @@ import { prisma } from "@power/db";
 import { connection } from "@power/job-runtime/connection";
 import { SEND_MAIL_JOB, sendMailHandler } from "@power/jobs/send-mail";
 import { CONCURRENCY, QUEUE_NAME } from "./config/queue";
+import { UPLOAD_JOB, uploadHandler } from "@power/jobs/upload";
 
 console.log("📨 SAH 2.0 Email Worker starting...");
 console.log(`🔄 Concurrency: ${CONCURRENCY} emails at a time`);
@@ -17,6 +18,11 @@ const worker = new Worker(
       case SEND_MAIL_JOB:
         await sendMailHandler(job.data);
         break;
+      case UPLOAD_JOB:
+        await uploadHandler(job.data);
+        break;
+      default:
+        throw new Error(`Unknown job type: ${job.name}`);
     }
   },
   {

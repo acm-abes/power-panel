@@ -23,6 +23,6 @@ function validateEnv() {
   return result.data;
 }
 
-export const storageEnv = validateEnv();
+export const env = validateEnv();
 
-export type StorageEnv = typeof storageEnv;
+export type StorageEnv = typeof env;
