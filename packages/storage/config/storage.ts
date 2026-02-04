@@ -5,7 +5,6 @@ import { z } from "zod";
 const envSchema = z.object({
   S3_BUCKET: z.string(),
   S3_REGION: z.string(),
-  S3_PREFIX: z.string(),
   STORAGE_PROVIDER: z.string(),
 });
 

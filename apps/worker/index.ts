@@ -1,5 +1,5 @@
 /** @format */
 
 import "dotenv/config";
-import "./src/queue";
+import "./src/config/queue";
 import "./src/worker";

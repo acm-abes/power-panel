@@ -1,6 +1,6 @@
 /** @format */
 
-import { ResendMailService, SESMailService, IMailService } from "./providers";
+import { ResendMailService, SESMailService, IMailService } from ".";
 import { env } from "./config/mails";
 
 export type MailProvider = "resend" | "ses";

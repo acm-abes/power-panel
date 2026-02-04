@@ -11,7 +11,6 @@ export function createStorageService(): StorageService {
     const cfg: S3Config = {
       bucket: env.S3_BUCKET,
       region: env.S3_REGION,
-      prefix: env.S3_PREFIX,
     };
 
     if (!cfg.bucket)
