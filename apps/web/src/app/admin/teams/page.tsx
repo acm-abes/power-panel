@@ -106,8 +106,8 @@ export default async function PendingTeamsPage() {
                             key={member.id}
                             className={`flex items-center justify-between p-3 border-l-5 transition-colors ${
                               member.hasSignedIn
-                                ? "bg-green-50 border-green-200 border-y border-r"
-                                : "bg-gray-50 border-gray-200"
+                                ? "bg-green-50/10 border-green-200 border-y border-r"
+                                : "bg-gray-50/10 border-gray-200"
                             }`}
                           >
                             <div className="flex items-center gap-3">
