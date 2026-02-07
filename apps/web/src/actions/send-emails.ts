@@ -136,23 +136,9 @@ export async function getEmailsByOption(option: EmailListOption) {
       }
 
       case "ALL_PARTICIPANTS": {
-        const participants = await prisma.userRole.findMany({
-          where: {
-            role: {
-              name: "PARTICIPANT",
-            },
-          },
-          include: {
-            user: {
-              select: {
-                email: true,
-                name: true,
-              },
-            },
-          },
-        });
+        const participants = await prisma.tempTeamMembers.findMany({});
 
-        const emails = participants.map((p) => p.user.email);
+        const emails = participants.map((p) => p.userEmail);
 
         return {
           success: true,
