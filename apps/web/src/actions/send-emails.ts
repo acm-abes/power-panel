@@ -6,16 +6,22 @@ import { prisma } from "@power/db";
 import { randomUUID } from "crypto";
 import {
   generateIncompleteTeamEmail,
+  generateUnsubmittedTeamEmail,
   generateInaugurationInviteEmail,
 } from "@/lib/email-templates";
 import { enqueueSendMail } from "@power/job-runtime/enqueueSendMail";
 
-export type EmailPreset = "INCOMPLETE_TEAM" | "INAUGURATION_INVITE" | "CUSTOM";
+export type EmailPreset =
+  | "INCOMPLETE_TEAM"
+  | "UNSUBMITTED_TEAM"
+  | "INAUGURATION_INVITE"
+  | "CUSTOM";
 
 export type EmailListOption =
   | "TEAM_SIZE_1"
   | "TEAM_SIZE_2"
   | "TEAM_SIZE_3"
+  | "UNSUBMITTED_TEAM"
   | "ALL_PARTICIPANTS"
   | "ALL_JUDGES"
   | "ALL_MENTORS"
@@ -127,6 +133,26 @@ export async function getEmailsByOption(option: EmailListOption) {
         const emails = teams
           .filter((team) => team.members.length === 3)
           .flatMap((team) => team.members.map((m) => m.user.email));
+
+        return {
+          success: true,
+          emails: [...new Set(emails)],
+          count: emails.length,
+        };
+      }
+
+      case "UNSUBMITTED_TEAM": {
+        // Query from Analytics table for users with unsubmitted teams
+        const unsubmittedUsers = await prisma.analytics.findMany({
+          where: {
+            submitted: "No",
+          },
+          select: {
+            userEmail: true,
+          },
+        });
+
+        const emails = unsubmittedUsers.map((u) => u.userEmail);
 
         return {
           success: true,
@@ -388,6 +414,80 @@ export async function sendEmails(
             };
 
             const { subject, html } = generateIncompleteTeamEmail(
+              analytics.userName,
+              teamData,
+            );
+
+            return enqueueSendMail({
+              to: email,
+              cc: customData?.cc?.split(", "),
+              bcc: customData?.bcc?.split(", "),
+              subject,
+              html,
+              attachments: customData?.attachments,
+              userId: analytics.id,
+              campaignId,
+            });
+          }),
+        );
+
+        return {
+          success: true,
+          sent: queuedJobs.filter(Boolean).length,
+          failed: 0,
+          message: `Queued ${queuedJobs.filter(Boolean).length} emails for delivery`,
+        };
+      }
+
+      case "UNSUBMITTED_TEAM": {
+        // Create a campaign ID for tracking
+        const campaignId = randomUUID();
+
+        // Get all recipient data from analytics table
+        const analyticsData = await prisma.analytics.findMany({
+          where: { userEmail: { in: emails } },
+          select: {
+            id: true,
+            userEmail: true,
+            userName: true,
+            teamName: true,
+            teamCode: true,
+          },
+        });
+
+        // Get team member counts for all teams
+        const teamCodes = [...new Set(analyticsData.map((a) => a.teamCode))];
+        const teamMemberCounts = await prisma.analytics.groupBy({
+          by: ["teamCode"],
+          where: { teamCode: { in: teamCodes } },
+          _count: { userEmail: true },
+        });
+
+        const memberCountMap = new Map(
+          teamMemberCounts.map((t) => [t.teamCode, t._count.userEmail]),
+        );
+
+        // Create email map for easy lookup
+        const analyticsMap = new Map(
+          analyticsData.map((a) => [a.userEmail, a]),
+        );
+
+        const queuedJobs = await Promise.all(
+          emails.map(async (email) => {
+            const analytics = analyticsMap.get(email);
+
+            if (!analytics) {
+              console.warn(`No analytics data found for ${email}, skipping`);
+              return;
+            }
+
+            const teamData = {
+              teamName: analytics.teamName,
+              teamCode: analytics.teamCode,
+              membersInTeam: memberCountMap.get(analytics.teamCode) || 1,
+            };
+
+            const { subject, html } = generateUnsubmittedTeamEmail(
               analytics.userName,
               teamData,
             );

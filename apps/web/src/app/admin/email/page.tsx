@@ -137,6 +137,9 @@ export default function SendEmailPage() {
                     <SelectItem value="INCOMPLETE_TEAM">
                       Incomplete Team Alert
                     </SelectItem>
+                    <SelectItem value="UNSUBMITTED_TEAM">
+                      Unsubmitted Team Alert
+                    </SelectItem>
                     <SelectItem value="INAUGURATION_INVITE">
                       Inauguration Invite
                     </SelectItem>
@@ -151,6 +154,17 @@ export default function SendEmailPage() {
                       <li>Personalized team details</li>
                       <li>Current team size</li>
                       <li>Action required notice</li>
+                    </ul>
+                  </div>
+                )}
+
+                {selectedPreset === "UNSUBMITTED_TEAM" && (
+                  <div className="text-xs text-muted-foreground space-y-1 mt-2">
+                    <p className="font-medium">Includes:</p>
+                    <ul className="list-disc list-inside space-y-0.5">
+                      <li>Personalized team details</li>
+                      <li>Submission instructions</li>
+                      <li>Urgent action notice</li>
                     </ul>
                   </div>
                 )}
@@ -333,6 +347,16 @@ export default function SendEmailPage() {
                 </Button>
                 <Button
                   variant="outline"
+                  onClick={() => loadEmailsByOption("UNSUBMITTED_TEAM")}
+                  disabled={isPending}
+                  size="sm"
+                  className="justify-start"
+                >
+                  <AlertTriangle className="w-3 h-3" />
+                  Unsubmitted
+                </Button>
+                <Button
+                  variant="outline"
                   onClick={loadIncompleteTeamsEmails}
                   disabled={isPending}
                   size="sm"
@@ -470,9 +494,11 @@ export default function SendEmailPage() {
                   <Badge variant="outline" className="mt-1">
                     {selectedPreset === "INCOMPLETE_TEAM"
                       ? "Incomplete Team"
-                      : selectedPreset === "INAUGURATION_INVITE"
-                        ? "Inauguration"
-                        : "Custom"}
+                      : selectedPreset === "UNSUBMITTED_TEAM"
+                        ? "Unsubmitted Team"
+                        : selectedPreset === "INAUGURATION_INVITE"
+                          ? "Inauguration"
+                          : "Custom"}
                   </Badge>
                 </div>
               </div>
