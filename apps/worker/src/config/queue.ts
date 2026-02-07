@@ -6,6 +6,6 @@ export const QUEUE_NAME = "master-queue";
 
 // Rate limit: 14 emails per second max
 export const RATE_LIMIT = {
-  max: 14,
+  max: 10,
   duration: 1000, // milliseconds
 };
