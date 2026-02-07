@@ -4,11 +4,14 @@ import { Worker } from "bullmq";
 import { prisma } from "@power/db";
 import { connection } from "@power/job-runtime/connection";
 import { SEND_MAIL_JOB, sendMailHandler } from "@power/jobs/send-mail";
-import { CONCURRENCY, QUEUE_NAME } from "./config/queue";
+import { CONCURRENCY, QUEUE_NAME, RATE_LIMIT } from "./config/queue";
 import { UPLOAD_JOB, uploadHandler } from "@power/jobs/upload";
 
 console.log("📨 SAH 2.0 Email Worker starting...");
 console.log(`🔄 Concurrency: ${CONCURRENCY} jobs at a time`);
+console.log(
+  `⏱️  Rate Limit: ${RATE_LIMIT.max} emails per ${RATE_LIMIT.duration}ms`,
+);
 console.log("");
 
 const worker = new Worker(
@@ -28,6 +31,7 @@ const worker = new Worker(
   {
     connection,
     concurrency: CONCURRENCY,
+    limiter: RATE_LIMIT,
   },
 );
 

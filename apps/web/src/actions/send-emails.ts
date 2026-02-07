@@ -328,73 +328,67 @@ export async function sendEmails(
         // Create a campaign ID for tracking
         const campaignId = randomUUID();
 
-        // Get user IDs for tracking (create default if not found)
-        const users = await prisma.user.findMany({
-          where: { email: { in: emails } },
-          select: { id: true, email: true },
-        });
-        const userIdMap = new Map(users.map((u) => [u.email, u.id]));
+        // Get user IDs for tracking
+        // const users = await prisma.user.findMany({
+        //   where: { email: { in: emails } },
+        //   select: { id: true, email: true },
+        // });
 
-        // Get team and recipient data (best effort)
-        const tempMembers = await prisma.tempTeamMembers.findMany({
+        // const userIdMap = new Map(users.map((u) => [u.email, u.id]));
+
+        // Get all recipient data from analytics table (single query!)
+        const analyticsData = await prisma.analytics.findMany({
           where: { userEmail: { in: emails } },
-        });
-
-        const teamIds = [...new Set(tempMembers.map((m) => m.teamId))];
-        const teams = await prisma.tempTeamData.findMany({
-          where: { id: { in: teamIds } },
-        });
-
-        const allMembers = await prisma.tempTeamMembers.findMany({
-          where: { teamId: { in: teamIds } },
-        });
-
-        const membersByTeam = allMembers.reduce(
-          (acc, member) => {
-            if (!acc[member.teamId]) acc[member.teamId] = [];
-            acc[member.teamId].push(member.userEmail);
-            return acc;
+          select: {
+            id: true,
+            userEmail: true,
+            userName: true,
+            teamName: true,
+            teamCode: true,
           },
-          {} as Record<string, string[]>,
+        });
+
+        // Get team member counts for all teams
+        const teamCodes = [...new Set(analyticsData.map((a) => a.teamCode))];
+        const teamMemberCounts = await prisma.analytics.groupBy({
+          by: ["teamCode"],
+          where: { teamCode: { in: teamCodes } },
+          _count: { userEmail: true },
+        });
+
+        const memberCountMap = new Map(
+          teamMemberCounts.map((t) => [t.teamCode, t._count.userEmail]),
         );
 
-        const recipientDetails = await prisma.analytics.findMany({
-          where: { userEmail: { in: emails } },
-          select: { userEmail: true, userName: true },
-        });
-        const recipientMap = new Map(
-          recipientDetails.map((r) => [r.userEmail, r.userName]),
+        // Create email map for easy lookup
+        const analyticsMap = new Map(
+          analyticsData.map((a) => [a.userEmail, a]),
         );
 
         const queuedJobs = await Promise.all(
           emails.map(async (email) => {
-            const userId = userIdMap.get(email);
+            // const userId = userIdMap.get(email);
 
-            if (!userId) {
-              console.warn(`No user ID found for ${email}, skipping`);
+            // if (!userId) {
+            //   console.warn(`No user ID found for ${email}, skipping`);
+            //   return;
+            // }
+
+            const analytics = analyticsMap.get(email);
+
+            if (!analytics) {
+              console.warn(`No analytics data found for ${email}, skipping`);
               return;
             }
 
-            const recipientName = recipientMap.get(email) || "Participant";
-            const member = tempMembers.find((m) => m.userEmail === email);
-            const team = member
-              ? teams.find((t) => t.id === member.teamId)
-              : null;
-
-            const teamData = team
-              ? {
-                  teamName: team.name,
-                  teamCode: team.teamCode,
-                  membersInTeam: membersByTeam[team.id]?.length || 1,
-                }
-              : {
-                  teamName: "Your Team",
-                  teamCode: "N/A",
-                  membersInTeam: 1,
-                };
+            const teamData = {
+              teamName: analytics.teamName,
+              teamCode: analytics.teamCode,
+              membersInTeam: memberCountMap.get(analytics.teamCode) || 1,
+            };
 
             const { subject, html } = generateIncompleteTeamEmail(
-              recipientName,
+              analytics.userName,
               teamData,
             );
 
@@ -405,7 +399,7 @@ export async function sendEmails(
               subject,
               html,
               attachments: customData?.attachments,
-              userId,
+              userId: analytics.id,
               campaignId,
             });
           }),
@@ -413,9 +407,9 @@ export async function sendEmails(
 
         return {
           success: true,
-          sent: queuedJobs.length,
+          sent: queuedJobs.filter(Boolean).length,
           failed: 0,
-          message: `Queued ${queuedJobs.length} emails for delivery`,
+          message: `Queued ${queuedJobs.filter(Boolean).length} emails for delivery`,
         };
       }
 
