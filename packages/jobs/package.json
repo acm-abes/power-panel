@@ -8,6 +8,7 @@
   },
   "dependencies": {
     "@power/mails": "workspace:*",
-    "@power/storage": "workspace:*"
+    "@power/storage": "workspace:*",
+    "@power/db": "workspace:*"
   }
 }
