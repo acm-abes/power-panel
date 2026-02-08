@@ -20,6 +20,11 @@ export interface S3Config {
   bucket: string;
   region?: string;
   prefix?: string;
+  credentials?: {
+    accessKeyId: string;
+    secretAccessKey: string;
+  };
+  endpoint?: string;
 }
 
 export class S3StorageService implements StorageService {
@@ -28,7 +33,11 @@ export class S3StorageService implements StorageService {
   private prefix: string;
 
   constructor(config: S3Config) {
-    this.client = new S3Client({ region: config.region });
+    this.client = new S3Client({
+      region: config.region,
+      credentials: config.credentials,
+      endpoint: config.endpoint,
+    });
     this.bucket = config.bucket;
     this.prefix = config.prefix ?? "";
   }

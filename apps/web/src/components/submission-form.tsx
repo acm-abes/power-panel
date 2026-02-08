@@ -4,6 +4,7 @@
 
 import { useState } from "react";
 import { createOrUpdateSubmission } from "@/actions/submissions";
+import { uploadSubmissionFile } from "@/actions/upload-submission";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -74,15 +75,17 @@ export function SubmissionForm({ problemStatements }: SubmissionFormProps) {
     setSuccess(null);
 
     try {
-      // TODO: Upload file to storage service
-      // For now, we'll use a placeholder path
-      const documentPath = `submissions/team-${Date.now()}/${file.name}`;
-      const documentSize = file.size;
+      // Upload file to storage service
+      const formData = new FormData();
+      formData.append("file", file);
 
+      const uploadResult = await uploadSubmissionFile(formData);
+
+      // Create submission with uploaded file details
       await createOrUpdateSubmission({
         psId,
-        documentPath,
-        documentSize,
+        documentPath: uploadResult.path,
+        documentSize: uploadResult.size,
         additionalNotes: additionalNotes || undefined,
       });
 
@@ -91,6 +94,9 @@ export function SubmissionForm({ problemStatements }: SubmissionFormProps) {
       setPsId("");
       setAdditionalNotes("");
       setFile(null);
+      // Reset file input
+      const fileInput = document.getElementById("document") as HTMLInputElement;
+      if (fileInput) fileInput.value = "";
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to submit");
     } finally {

@@ -11,6 +11,14 @@ export function createStorageService(): StorageService {
     const cfg: S3Config = {
       bucket: env.S3_BUCKET,
       region: env.S3_REGION,
+      endpoint: env.S3_ENDPOINT,
+      credentials:
+        env.S3_ACCESS_KEY_ID && env.S3_SECRET_ACCESS_KEY
+          ? {
+              accessKeyId: env.S3_ACCESS_KEY_ID,
+              secretAccessKey: env.S3_SECRET_ACCESS_KEY,
+            }
+          : undefined,
     };
 
     if (!cfg.bucket)
