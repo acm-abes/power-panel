@@ -152,6 +152,8 @@ model Submission {
 
   team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
 
+  problemStatements ProblemStatement[]
+  
   @@index([teamId])
   @@index([psId])
   @@map("submission")
@@ -197,6 +199,18 @@ model JudgeAssignment {
   @@index([judgeId])
   @@index([teamId])
   @@map("judge_assignment")
+}
+
+model ProblemStatement {
+  id          String   @id @default(cuid())
+  title       String
+  content     String
+  provider    String
+  createdAt   DateTime @default(now())
+  
+  submissions Submission[]
+
+  @@map("problem_statement")
 }
 
 // EvaluationCriterion - Data-driven evaluation criteria
