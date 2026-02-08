@@ -43,6 +43,7 @@ import {
 import { EmailPreset } from "@/actions/send-emails";
 import { EmailTagInput } from "@/components/email-tag-input";
 import { AttachmentUpload } from "@/components/attachment-upload";
+import { Page, PageContent, PageHeading } from "@/components/page";
 
 export default function SendEmailPage() {
   const {
@@ -97,18 +98,13 @@ export default function SendEmailPage() {
   };
 
   return (
-    <div className="container mx-auto p-6 max-w-6xl">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold flex items-center gap-2">
-          <Mail className="w-8 h-8" />
-          Email Management
-        </h1>
-        <p className="text-muted-foreground mt-2">
-          Send emails to participants, judges, mentors, or custom lists
-        </p>
-      </div>
+    <Page>
+      <PageHeading
+        title="Send Custom Emails"
+        description="Send emails to participants, judges, mentors, or custom lists"
+      />
 
-      <div className="space-y-6">
+      <PageContent>
         {/* Step 1: Email Configuration */}
         <Card>
           <CardHeader>
@@ -141,6 +137,9 @@ export default function SendEmailPage() {
                     <SelectItem value="INCOMPLETE_TEAM">
                       Incomplete Team Alert
                     </SelectItem>
+                    <SelectItem value="UNSUBMITTED_TEAM">
+                      Unsubmitted Team Alert
+                    </SelectItem>
                     <SelectItem value="INAUGURATION_INVITE">
                       Inauguration Invite
                     </SelectItem>
@@ -155,6 +154,17 @@ export default function SendEmailPage() {
                       <li>Personalized team details</li>
                       <li>Current team size</li>
                       <li>Action required notice</li>
+                    </ul>
+                  </div>
+                )}
+
+                {selectedPreset === "UNSUBMITTED_TEAM" && (
+                  <div className="text-xs text-muted-foreground space-y-1 mt-2">
+                    <p className="font-medium">Includes:</p>
+                    <ul className="list-disc list-inside space-y-0.5">
+                      <li>Personalized team details</li>
+                      <li>Submission instructions</li>
+                      <li>Urgent action notice</li>
                     </ul>
                   </div>
                 )}
@@ -312,7 +322,7 @@ export default function SendEmailPage() {
                   size="sm"
                   className="justify-start"
                 >
-                  <Users className="w-3 h-3 mr-2" />
+                  <Users className="w-3 h-3" />
                   Size = 1
                 </Button>
                 <Button
@@ -322,7 +332,7 @@ export default function SendEmailPage() {
                   size="sm"
                   className="justify-start"
                 >
-                  <Users className="w-3 h-3 mr-2" />
+                  <Users className="w-3 h-3" />
                   Size = 2
                 </Button>
                 <Button
@@ -332,8 +342,18 @@ export default function SendEmailPage() {
                   size="sm"
                   className="justify-start"
                 >
-                  <Users className="w-3 h-3 mr-2" />
+                  <Users className="w-3 h-3" />
                   Size = 3
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => loadEmailsByOption("UNSUBMITTED_TEAM")}
+                  disabled={isPending}
+                  size="sm"
+                  className="justify-start"
+                >
+                  <AlertTriangle className="w-3 h-3" />
+                  Unsubmitted
                 </Button>
                 <Button
                   variant="outline"
@@ -342,7 +362,7 @@ export default function SendEmailPage() {
                   size="sm"
                   className="justify-start"
                 >
-                  <AlertTriangle className="w-3 h-3 mr-2" />
+                  <AlertTriangle className="w-3 h-3" />
                   Incomplete
                 </Button>
                 <Button
@@ -393,7 +413,7 @@ export default function SendEmailPage() {
                   onClick={handleAddEmail}
                   disabled={isPending || !emailInput.trim()}
                 >
-                  <Plus className="w-4 h-4 mr-2" />
+                  <Plus className="w-4 h-4" />
                   Add
                 </Button>
               </div>
@@ -474,9 +494,11 @@ export default function SendEmailPage() {
                   <Badge variant="outline" className="mt-1">
                     {selectedPreset === "INCOMPLETE_TEAM"
                       ? "Incomplete Team"
-                      : selectedPreset === "INAUGURATION_INVITE"
-                        ? "Inauguration"
-                        : "Custom"}
+                      : selectedPreset === "UNSUBMITTED_TEAM"
+                        ? "Unsubmitted Team"
+                        : selectedPreset === "INAUGURATION_INVITE"
+                          ? "Inauguration"
+                          : "Custom"}
                   </Badge>
                 </div>
               </div>
@@ -489,12 +511,12 @@ export default function SendEmailPage() {
               >
                 {isPending ? (
                   <>
-                    <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                    <Loader2 className="w-5 h-5 animate-spin" />
                     Sending to {emails.length} recipients...
                   </>
                 ) : (
                   <>
-                    <Send className="w-5 h-5 mr-2" />
+                    <Send className="w-5 h-5" />
                     Send {emails.length} Email{emails.length !== 1 ? "s" : ""}
                   </>
                 )}
@@ -502,7 +524,7 @@ export default function SendEmailPage() {
             </div>
           </CardContent>
         </Card>
-      </div>
+      </PageContent>
 
       {/* Confirmation Dialog */}
       <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
@@ -533,6 +555,6 @@ export default function SendEmailPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </Page>
   );
 }

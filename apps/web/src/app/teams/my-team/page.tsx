@@ -15,6 +15,8 @@ import {
 } from "@/components/ui/table";
 import { headers } from "next/headers";
 import { Page, PageContent, PageHeading } from "@/components/page";
+import { SubmissionForm } from "@/components/submission-form";
+import { getAllProblemStatements } from "@/actions/problem-statements";
 
 export default async function MyTeamPage() {
   const session = await auth.api.getSession({
@@ -37,6 +39,7 @@ export default async function MyTeamPage() {
               user: true,
             },
           },
+          submission: true,
           evaluations: {
             where: {
               submittedAt: {
@@ -84,6 +87,9 @@ export default async function MyTeamPage() {
 
   const team = teamMembership.team;
 
+  // Fetch problem statements for the submission form
+  const problemStatements = await getAllProblemStatements();
+
   // Calculate average score
   const totalScore = team.evaluations.reduce((teamTotal, evaluation) => {
     const evaluationTotal = evaluation.scores.reduce(
@@ -98,10 +104,7 @@ export default async function MyTeamPage() {
 
   return (
     <Page>
-      <PageHeading
-        title={team.name}
-        badge={team.track && <Badge variant="outline">{team.track}</Badge>}
-      />
+      <PageHeading title={team.name} />
       <PageContent>
         <Card>
           <CardHeader>
@@ -167,6 +170,11 @@ export default async function MyTeamPage() {
             </div>
           </CardContent>
         </Card>
+
+        <SubmissionForm
+          existingSubmission={team.submission}
+          problemStatements={problemStatements}
+        />
 
         {team.evaluations.length > 0 && (
           <Card>

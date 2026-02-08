@@ -80,7 +80,6 @@ async function seedTempData() {
           data: {
             name: teamName,
             teamCode: teamCode,
-            track: null, // Track info not in CSV
           },
         });
         teamsCreated++;

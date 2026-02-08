@@ -1,0 +1,13 @@
+{
+  "name": "@power/jobs",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "dependencies": {
+    "@power/mails": "workspace:*",
+    "@power/storage": "workspace:*"
+  }
+}

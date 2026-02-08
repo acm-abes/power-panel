@@ -105,14 +105,10 @@ model Verification {
   @@map("verification")
 }
 
-// Application Models
-
-// Team - Hackathon team
 model Team {
   id        String   @id @default(cuid())
   name      String
   teamCode  String   @unique
-  track     String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   
@@ -120,6 +116,7 @@ model Team {
   judgeAssignments  JudgeAssignment[]
   evaluations       Evaluation[]
   mentorFeedbacks   MentorFeedback[]
+  submission        Submission?
 
   @@map("team")
 }
@@ -139,6 +136,26 @@ model TeamMember {
   @@index([userId])
   @@index([teamId])
   @@map("team_member")
+}
+
+model Submission {
+  id              String   @id @default(cuid())
+  teamId          String   @unique
+  psId            String   // Problem Statement ID reference
+  documentPath    String   // Storage path from upload service
+  documentSize    Int      // File size in bytes
+  additionalNotes String?  // Optional recommendations or additional input
+  isLocked        Boolean  @default(false)
+  submittedAt     DateTime @default(now())
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  team             Team              @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  problemStatement ProblemStatement? @relation(fields: [psId], references: [psId], onDelete: Restrict)
+
+  @@index([teamId])
+  @@index([psId])
+  @@map("submission")
 }
 
 // Role - System-wide roles
@@ -181,6 +198,21 @@ model JudgeAssignment {
   @@index([judgeId])
   @@index([teamId])
   @@map("judge_assignment")
+}
+
+model ProblemStatement {
+  id          String   @id @default(cuid())
+  psId        String   @unique // e.g., "ai-ps-1", "defence-ps-1"
+  track       String   // e.g., "ai", "defence", "web3"
+  title       String
+  content     String   @db.Text // HTML content with Tailwind classes
+  provider    String   // Organization/person providing the PS
+  createdAt   DateTime @default(now())
+
+  submissions Submission[]
+
+  @@index([track])
+  @@map("problem_statement")
 }
 
 // EvaluationCriterion - Data-driven evaluation criteria
@@ -286,7 +318,6 @@ model TempTeamData {
   id        String   @id @default(cuid())
   name      String
   teamCode  String   @unique
-  track     String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   

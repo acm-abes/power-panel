@@ -7,7 +7,9 @@
     "schema": "prisma/schema.prisma"
   },
   "scripts": {
-    "generate": "bunx prisma generate"
+    "generate": "bunx prisma generate",
+    "ingest": "bun run scripts/seed-temp-data.ts",
+    "seed:ps": "bun run scripts/seed-problem-statements.ts"
   },
   "devDependencies": {
     "@types/node": "^25.1.0"

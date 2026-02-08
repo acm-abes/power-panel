@@ -33,10 +33,19 @@ export const EVALUATION_CRITERIA = [
     fullMark: 100,
     order: 4,
   },
+  {
+    key: "METHODOLOGY",
+    subject: "Methodology",
+    description:
+      "The soundness of the approach, including design choices and trade-offs. Does the team demonstrate a thoughtful process in developing their solution? Are there clear justifications for their technical decisions?",
+    fullMark: 100,
+    order: 5,
+  },
 ];
 
 export type CriterionKey =
   | "NOVELTY"
   | "ARTICULATION"
   | "TECHNICAL_DEPTH"
-  | "FEASIBILITY";
+  | "FEASIBILITY"
+  | "METHODOLOGY";

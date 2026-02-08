@@ -60,13 +60,13 @@ export function generateIncompleteTeamEmail(
        
         <div style="background:#fff3cd;padding:15px;border-left:4px solid #ffc107;margin:20px 0">
             ⚠️ <b>Action Required:</b> Your team has ${data.membersInTeam} members but registration is not yet submitted.<br>
-            Please go to your Devfolio dashboard and click <b>"Submit Registration"</b> before 13th February 2026.
+            Please go to your Devnovate dashboard and click the big green <b>"Submit"</b> button before 8th February 2026.
         </div>
 
         <div style="padding:20px;background:#f9f9f9">
             <p>Dear <strong>${recipientName}</strong>,</p>
            
-            <p>Greetings from SAH 2.0 Organizing Team!</p>
+            <p>Greetings from the SAH 2.0 Organizing Team!</p>
            
             <p>Thank you for registering for <b>Smart ABES Hackathon 2.0</b>. We're excited to have your team on board!</p>
            
@@ -92,6 +92,95 @@ export function generateIncompleteTeamEmail(
               Mail us at <b><a href="mailto:organizer@smartabeshackathon.tech">organizer@smartabeshackathon.tech</a></b></p>
               <p>If you want us to pair you with someone else, mail us at <b><a href="mailto:support@smartabeshackathon.tech">support@smartabeshackathon.tech</a></b></p>
             </div>
+           
+            <p>Best Regards,<br>
+            <strong>SAH 2.0 Organizing Committee</strong></p>
+        </div>
+       
+        ${getEmailFooter()}
+    </div>
+</div>
+</body>
+</html>`;
+
+  return { subject, html };
+}
+
+/**
+ * Template: Unsubmitted Team Alert
+ */
+export function generateUnsubmittedTeamEmail(
+  recipientName: string,
+  data: {
+    teamName: string;
+    teamCode: string;
+    membersInTeam: number;
+  },
+): { subject: string; html: string } {
+  const subject = `SAH 2.0 | ${data.teamName} - Action Required: Submit Your Registration`;
+
+  const html = `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body { margin: 0; padding: 0; font-family: Arial, sans-serif; }
+        .container { max-width: 600px; margin: 0 auto; }
+    </style>
+</head>
+<body>
+<div style="font-family:Arial,sans-serif;line-height:1.6;color:#333">
+    <div style="max-width:600px;margin:0 auto;padding:20px">
+        ${getEmailHeader()}
+       <div style="background:#fff3cd;padding:15px;border-left:4px solid #ffc107;">
+                <strong style="color:#d32f2f">⏰ Urgent Action Required:</strong><br>
+                Your registration will be considered <b>after you click the big green "Submit" button</b> on your Devnovate dashboard.<br><br>
+                <b>Deadline:</b> 8th February 2026 11:59:59 PM
+            </div>
+
+        <div style="padding:20px;background:#f9f9f9">
+            <p>Dear <strong>${recipientName}</strong>,</p>
+           
+            <p>Greetings from the SAH 2.0 Organizing Team!</p>
+           
+            <p>We noticed that your team <b>${data.teamName}</b> has registered for <b>Smart ABES Hackathon 2.0</b>, but the registration has <b style="color:#d32f2f">NOT been submitted yet</b>.</p>
+           
+             <div style="background:#e8f5e9;padding:15px;border-radius:8px;margin:20px 0;text-align:center">
+                <p style="margin:0 0 10px 0;font-size:16px;font-weight:bold;color:#2e7d32">📋 How to Submit Your Registration:</p>
+                <ol style="text-align:left;margin:10px 0;padding-left:20px;color:#555">
+                    <li>Go to <a href="https://devnovate.co/event/sah-20" style="color:#2e7d32">https://devnovate.co/event/sah-20</a></li>
+                    <li>Navigate to your SAH 2.0 team dashboard</li>
+                    <li>Click the big green <b>"Submit"</b> button</li>
+                    <li>Confirm your submission</li>
+                </ol>
+            </div>
+           
+            <div style="background:#e8f4f8;padding:15px;border-left:4px solid #00d4ff;margin:20px 0">
+                <strong>Your Team Details:</strong><br>
+                Team Name: ${data.teamName}<br>
+                Team Code: ${data.teamCode}<br>
+                Current Members: ${data.membersInTeam}
+            </div>
+
+           
+           
+            <br><b>📅 Important Dates:</b>
+            <ul>
+                <li><b>Registration Submission Deadline:</b> 8th February 2026 11:59:59 PM</li>
+                <li><b>Round 1 Evaluation:</b> 14-15 February 2026</li>
+                <li><b>Mentoring Phase:</b> 16-27 February 2026</li>
+                <li><b>Grand Finale:</b> 28 February 2026 @ ABES EC</li>
+            </ul>
+           
+            <div>
+              <p>
+              For any queries, refer to our <b><a href="https://smartabeshackathon.tech/contacts">contact page</a></b>
+              <br/>or<br/>
+              Mail us at <b><a href="mailto:organizer@smartabeshackathon.tech">organizer@smartabeshackathon.tech</a></b></p>
+            </div>
+           
+            <p>Don't miss out on this amazing opportunity! Submit your registration today.</p>
            
             <p>Best Regards,<br>
             <strong>SAH 2.0 Organizing Committee</strong></p>
@@ -163,6 +252,85 @@ export function generateInaugurationInviteEmail(
            
             <p>Best Regards,<br>
             <strong>SAH 2.0 Organizing Committee</strong></p>
+        </div>
+       
+        ${getEmailFooter()}
+    </div>
+</div>
+</body>
+</html>`;
+
+  return { subject, html };
+}
+
+/**
+ * Template: Panel Discussion Invite
+ */
+export function generatePanelDiscussionEmail(
+  recipientName: string,
+  data: {
+    youtubeLink: string;
+  },
+): { subject: string; html: string } {
+  const subject = `SAH 2.0 | Live Panel Discussion - What Makes Engineering 'Serious'?`;
+
+  const html = `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body { margin: 0; padding: 0; font-family: Arial, sans-serif; }
+        .container { max-width: 600px; margin: 0 auto; }
+    </style>
+</head>
+<body>
+<div style="font-family:Arial,sans-serif;line-height:1.6;color:#333">
+    <div style="max-width:600px;margin:0 auto;padding:20px">
+        ${getEmailHeader()}
+       
+        <div style="padding:20px;background:#f9f9f9">
+            <p style="font-style:italic;color:#555;border-left:3px solid #00d4ff;padding-left:15px;margin:20px 0">
+                Do you know why most projects never go beyond a demo?<br>
+                Because they tackle something that looks impressive, not something that truly matters.
+            </p>
+
+            <p>Dear ${recipientName},</p>
+           
+            <p>Tonight, we are going <b>LIVE on YouTube</b> with a high-impact panel discussion that gets straight to the core of engineering reality.</p>
+           
+            <div style="background:#e8f4f8;padding:20px;border-left:4px solid #00d4ff;margin:20px 0">
+                <p style="margin:0 0 10px 0;font-size:18px;font-weight:bold;color:#00695c">🎙️ Panel Discussion</p>
+                <p style="margin:0;font-size:16px;font-weight:bold">What Makes a Problem and a Solution 'Serious' in Engineering?</p>
+            </div>
+
+            <div style="margin:20px 0">
+                <p style="margin:5px 0"><b>🗓 Date:</b> 8 February 2026</p>
+                <p style="margin:5px 0"><b>⏰ Time:</b> 7:00 PM (IST)</p>
+                <p style="margin:5px 0"><b>📺 Platform:</b> Live-streamed on <a href="${data.youtubeLink}" style="color:#00d4ff;font-weight:bold">YouTube</a></p>
+            </div>
+
+            <p>This session features <b>industry experts, system builders, and ecosystem contributors</b> who work at the intersection of engineering, problem framing, and real-world impact.</p>
+           
+            <p>The discussion goes beyond hackathons and tools. It focuses on how serious problems are identified, how constraints and trade-offs shape solutions, and what sets meaningful engineering apart from superficial implementation. Panelists will also share what they repeatedly observe when evaluating projects across the ecosystem.</p>
+
+            <div style="margin:25px 0">
+                <p style="margin:0 0 10px 0;font-size:16px;font-weight:bold;color:#333">🔥 What you will learn</p>
+                <ul style="color:#555;line-height:1.8;margin:10px 0;padding-left:20px">
+                    <li>How real problems are framed in industry and engineering ecosystems</li>
+                    <li>What technical seriousness really means in practice</li>
+                    <li>Where algorithms and system design offer genuine leverage</li>
+                    <li>Why many solutions fail despite appearing complete</li>
+                    <li>How depth is assessed beyond demos and presentations</li>
+                </ul>
+            </div>
+
+            <p><b>If you are building for SAH 2.0, this session will directly influence your thinking and building process.</b></p>
+
+            <p style="margin:25px 0;font-size:15px;color:#555">Join us live and reconsider what truly defines serious engineering.</p>
+           
+            <p>Regards,<br>
+            <strong>SAH 2.0 Organising Team</strong></p>
         </div>
        
         ${getEmailFooter()}
