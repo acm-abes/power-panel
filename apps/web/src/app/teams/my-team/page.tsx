@@ -16,6 +16,7 @@ import {
 import { headers } from "next/headers";
 import { Page, PageContent, PageHeading } from "@/components/page";
 import { SubmissionForm } from "@/components/submission-form";
+import { SubmissionDetails } from "@/components/submission-details";
 import { getAllProblemStatements } from "@/actions/problem-statements";
 
 export default async function MyTeamPage() {
@@ -171,10 +172,14 @@ export default async function MyTeamPage() {
           </CardContent>
         </Card>
 
-        <SubmissionForm
-          existingSubmission={team.submission}
-          problemStatements={problemStatements}
-        />
+        {team.submission ? (
+          <SubmissionDetails
+            submission={team.submission}
+            problemStatements={problemStatements}
+          />
+        ) : (
+          <SubmissionForm problemStatements={problemStatements} />
+        )}
 
         {team.evaluations.length > 0 && (
           <Card>

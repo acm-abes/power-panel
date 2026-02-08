@@ -3,10 +3,7 @@
 "use client";
 
 import { useState } from "react";
-import {
-  createOrUpdateSubmission,
-  deleteSubmission,
-} from "@/actions/submissions";
+import { createOrUpdateSubmission } from "@/actions/submissions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -25,18 +22,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Loader2, Upload, Trash2, Lock } from "lucide-react";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
+import { Loader2, Upload } from "lucide-react";
 
 interface ProblemStatement {
   id: string;
@@ -47,32 +33,16 @@ interface ProblemStatement {
 }
 
 interface SubmissionFormProps {
-  existingSubmission?: {
-    id: string;
-    psId: string;
-    documentPath: string;
-    documentSize: number;
-    additionalNotes: string | null;
-    isLocked: boolean;
-    submittedAt: Date;
-  } | null;
   problemStatements: ProblemStatement[];
 }
 
-export function SubmissionForm({
-  existingSubmission,
-  problemStatements,
-}: SubmissionFormProps) {
-  const [psId, setPsId] = useState(existingSubmission?.psId || "");
-  const [additionalNotes, setAdditionalNotes] = useState(
-    existingSubmission?.additionalNotes || "",
-  );
+export function SubmissionForm({ problemStatements }: SubmissionFormProps) {
+  const [psId, setPsId] = useState("");
+  const [additionalNotes, setAdditionalNotes] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-
-  const isLocked = existingSubmission?.isLocked || false;
 
   // Group problem statements by track
   const groupedPS = problemStatements.reduce(
@@ -89,48 +59,15 @@ export function SubmissionForm({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (isLocked) {
-      setError("Submission is locked and cannot be modified");
-      return;
-    }
-
     if (!psId) {
-      setError("Problem Statement ID is required");
+      setError("Problem Statement is required");
       return;
     }
 
-    // If no existing submission, file is required
-    if (!existingSubmission && !file) {
+    if (!file) {
       setError("Document file is required");
       return;
     }
-
-    // If updating and a new file is provided
-    if (existingSubmission && !file) {
-      // Just update the metadata without a new file
-      setIsLoading(true);
-      setError(null);
-      setSuccess(null);
-
-      try {
-        await createOrUpdateSubmission({
-          psId,
-          documentPath: existingSubmission.documentPath,
-          documentSize: existingSubmission.documentSize,
-          additionalNotes: additionalNotes || undefined,
-        });
-        setSuccess("Submission updated successfully!");
-      } catch (err) {
-        setError(
-          err instanceof Error ? err.message : "Failed to update submission",
-        );
-      } finally {
-        setIsLoading(false);
-      }
-      return;
-    }
-
-    if (!file) return;
 
     setIsLoading(true);
     setError(null);
@@ -149,11 +86,10 @@ export function SubmissionForm({
         additionalNotes: additionalNotes || undefined,
       });
 
-      setSuccess(
-        existingSubmission
-          ? "Submission updated successfully!"
-          : "Submission created successfully!",
-      );
+      setSuccess("Submission created successfully!");
+      // Reset form
+      setPsId("");
+      setAdditionalNotes("");
       setFile(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to submit");
@@ -162,52 +98,13 @@ export function SubmissionForm({
     }
   };
 
-  const handleDelete = async () => {
-    if (isLocked) {
-      setError("Submission is locked and cannot be deleted");
-      return;
-    }
-
-    setIsLoading(true);
-    setError(null);
-    setSuccess(null);
-
-    try {
-      await deleteSubmission();
-      setSuccess("Submission deleted successfully!");
-      setPsId("");
-      setAdditionalNotes("");
-      setFile(null);
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Failed to delete submission",
-      );
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const formatFileSize = (bytes: number) => {
-    if (bytes === 0) return "0 Bytes";
-    const k = 1024;
-    const sizes = ["Bytes", "KB", "MB", "GB"];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + " " + sizes[i];
-  };
-
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          {existingSubmission ? "Update Submission" : "Create Submission"}
-          {isLocked && <Lock className="h-4 w-4 text-muted-foreground" />}
-        </CardTitle>
+        <CardTitle>Create Submission</CardTitle>
         <CardDescription>
-          {isLocked
-            ? "This submission is locked and cannot be modified."
-            : existingSubmission
-              ? "Update your project submission. You can replace the document or update other fields."
-              : "Submit your project for evaluation. Fill in the required details below."}
+          Submit your project for evaluation. Fill in the required details
+          below.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -227,11 +124,7 @@ export function SubmissionForm({
             <Label htmlFor="psId">
               Problem Statement <span className="text-destructive">*</span>
             </Label>
-            <Select
-              value={psId}
-              onValueChange={setPsId}
-              disabled={isLoading || isLocked}
-            >
+            <Select value={psId} onValueChange={setPsId} disabled={isLoading}>
               <SelectTrigger id="psId">
                 <SelectValue placeholder="Select a problem statement" />
               </SelectTrigger>
@@ -259,31 +152,46 @@ export function SubmissionForm({
               <p className="text-xs text-muted-foreground">
                 Selected:{" "}
                 {problemStatements.find((ps) => ps.psId === psId)?.title}
+                <br />
+                To view the problem statement details, please refer to the{" "}
+                <a
+                  href={`https://smartabeshackathon.tech/problem-statements/${psId.split("-")[0]}/${psId.split("-").slice(1).join("-")}`}
+                  className="text-cyan-500"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  problem statement page
+                </a>
+                .
               </p>
             )}
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="document">
-              Document{" "}
-              {!existingSubmission && (
-                <span className="text-destructive">*</span>
-              )}
+              Document <span className="text-destructive">*</span>
             </Label>
-            {existingSubmission && (
-              <div className="text-sm text-muted-foreground mb-2">
-                Current: {existingSubmission.documentPath.split("/").pop()} (
-                {formatFileSize(existingSubmission.documentSize)})
-              </div>
-            )}
             <Input
               id="document"
               type="file"
               onChange={(e) => setFile(e.target.files?.[0] || null)}
-              disabled={isLoading || isLocked}
+              disabled={isLoading}
               accept=".pdf,.doc,.docx,.ppt,.pptx"
             />
             <p className="text-xs text-muted-foreground">
+              <span>
+                The doc defining your solution. It must follow the format
+                specified{" "}
+                <a
+                  href=""
+                  className="text-cyan-500"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  here
+                </a>
+                <br />
+              </span>
               Accepted formats: PDF, DOC, DOCX, PPT, PPTX
             </p>
           </div>
@@ -296,64 +204,23 @@ export function SubmissionForm({
               onChange={(e) => setAdditionalNotes(e.target.value)}
               placeholder="Add any additional information or recommendations..."
               rows={4}
-              disabled={isLoading || isLocked}
+              disabled={isLoading}
             />
           </div>
 
-          <div className="flex gap-2">
-            <Button type="submit" disabled={isLoading || isLocked}>
-              {isLoading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  {existingSubmission ? "Updating..." : "Submitting..."}
-                </>
-              ) : (
-                <>
-                  <Upload className="mr-2 h-4 w-4" />
-                  {existingSubmission
-                    ? "Update Submission"
-                    : "Create Submission"}
-                </>
-              )}
-            </Button>
-
-            {existingSubmission && !isLocked && (
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button
-                    type="button"
-                    variant="destructive"
-                    disabled={isLoading}
-                  >
-                    <Trash2 className="mr-2 h-4 w-4" />
-                    Delete
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Delete Submission</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      Are you sure you want to delete this submission? This
-                      action cannot be undone.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction onClick={handleDelete}>
-                      Delete
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
+          <Button type="submit" disabled={isLoading}>
+            {isLoading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Submitting...
+              </>
+            ) : (
+              <>
+                <Upload className="mr-2 h-4 w-4" />
+                Create Submission
+              </>
             )}
-          </div>
-
-          {existingSubmission && (
-            <div className="text-xs text-muted-foreground">
-              Submitted on:{" "}
-              {new Date(existingSubmission.submittedAt).toLocaleString()}
-            </div>
-          )}
+          </Button>
         </form>
       </CardContent>
     </Card>
