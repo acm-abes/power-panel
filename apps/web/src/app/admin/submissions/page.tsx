@@ -1,6 +1,7 @@
 /** @format */
 
 import { getAllSubmissions } from "@/actions/submissions";
+import { getAllProblemStatements } from "@/actions/problem-statements";
 import { Page, PageHeading, PageContent } from "@/components/page";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -15,6 +16,10 @@ import { ToggleLockButton } from "./toggle-lock-button";
 
 export default async function AdminSubmissionsPage() {
   const submissions = await getAllSubmissions();
+  const problemStatements = await getAllProblemStatements();
+
+  // Create a map for quick PS lookup
+  const psMap = new Map(problemStatements.map((ps) => [ps.psId, ps]));
 
   const lockedCount = submissions.filter((s) => s.isLocked).length;
   const unlockedCount = submissions.filter((s) => !s.isLocked).length;
@@ -107,11 +112,18 @@ export default async function AdminSubmissionsPage() {
                             <div className="space-y-2 text-sm">
                               <div>
                                 <span className="text-muted-foreground">
-                                  Problem Statement ID:
+                                  Problem Statement:
                                 </span>{" "}
-                                <span className="font-medium">
-                                  {submission.psId}
-                                </span>
+                                <div className="font-medium mt-1">
+                                  <span className="text-primary">
+                                    {submission.psId.toUpperCase()}
+                                  </span>
+                                  {psMap.get(submission.psId) && (
+                                    <div className="text-xs text-muted-foreground mt-1">
+                                      {psMap.get(submission.psId)?.title}
+                                    </div>
+                                  )}
+                                </div>
                               </div>
                               <div>
                                 <span className="text-muted-foreground">

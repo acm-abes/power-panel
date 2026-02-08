@@ -12,6 +12,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Card,
   CardContent,
   CardDescription,
@@ -31,6 +38,14 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 
+interface ProblemStatement {
+  id: string;
+  psId: string;
+  track: string;
+  title: string;
+  provider: string;
+}
+
 interface SubmissionFormProps {
   existingSubmission?: {
     id: string;
@@ -41,9 +56,13 @@ interface SubmissionFormProps {
     isLocked: boolean;
     submittedAt: Date;
   } | null;
+  problemStatements: ProblemStatement[];
 }
 
-export function SubmissionForm({ existingSubmission }: SubmissionFormProps) {
+export function SubmissionForm({
+  existingSubmission,
+  problemStatements,
+}: SubmissionFormProps) {
   const [psId, setPsId] = useState(existingSubmission?.psId || "");
   const [additionalNotes, setAdditionalNotes] = useState(
     existingSubmission?.additionalNotes || "",
@@ -54,6 +73,18 @@ export function SubmissionForm({ existingSubmission }: SubmissionFormProps) {
   const [success, setSuccess] = useState<string | null>(null);
 
   const isLocked = existingSubmission?.isLocked || false;
+
+  // Group problem statements by track
+  const groupedPS = problemStatements.reduce(
+    (acc, ps) => {
+      if (!acc[ps.track]) {
+        acc[ps.track] = [];
+      }
+      acc[ps.track].push(ps);
+      return acc;
+    },
+    {} as Record<string, ProblemStatement[]>,
+  );
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -194,16 +225,42 @@ export function SubmissionForm({ existingSubmission }: SubmissionFormProps) {
 
           <div className="space-y-2">
             <Label htmlFor="psId">
-              Problem Statement ID <span className="text-destructive">*</span>
+              Problem Statement <span className="text-destructive">*</span>
             </Label>
-            <Input
-              id="psId"
+            <Select
               value={psId}
-              onChange={(e) => setPsId(e.target.value)}
-              placeholder="e.g., PS001"
+              onValueChange={setPsId}
               disabled={isLoading || isLocked}
-              required
-            />
+            >
+              <SelectTrigger id="psId">
+                <SelectValue placeholder="Select a problem statement" />
+              </SelectTrigger>
+              <SelectContent>
+                {Object.entries(groupedPS).map(([track, statements]) => (
+                  <div key={track}>
+                    <div className="px-2 py-1.5 text-sm font-semibold capitalize text-muted-foreground">
+                      {track === "ai"
+                        ? "AI"
+                        : track === "web3"
+                          ? "Web3"
+                          : track.charAt(0).toUpperCase() + track.slice(1)}
+                    </div>
+                    {statements.map((ps) => (
+                      <SelectItem key={ps.psId} value={ps.psId}>
+                        {ps.psId.toUpperCase()} - {ps.title.substring(0, 50)}
+                        {ps.title.length > 50 ? "..." : ""}
+                      </SelectItem>
+                    ))}
+                  </div>
+                ))}
+              </SelectContent>
+            </Select>
+            {psId && (
+              <p className="text-xs text-muted-foreground">
+                Selected:{" "}
+                {problemStatements.find((ps) => ps.psId === psId)?.title}
+              </p>
+            )}
           </div>
 
           <div className="space-y-2">

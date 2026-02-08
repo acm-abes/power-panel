@@ -16,6 +16,7 @@ import {
 import { headers } from "next/headers";
 import { Page, PageContent, PageHeading } from "@/components/page";
 import { SubmissionForm } from "@/components/submission-form";
+import { getAllProblemStatements } from "@/actions/problem-statements";
 
 export default async function MyTeamPage() {
   const session = await auth.api.getSession({
@@ -85,6 +86,9 @@ export default async function MyTeamPage() {
   }
 
   const team = teamMembership.team;
+
+  // Fetch problem statements for the submission form
+  const problemStatements = await getAllProblemStatements();
 
   // Calculate average score
   const totalScore = team.evaluations.reduce((teamTotal, evaluation) => {
@@ -167,7 +171,10 @@ export default async function MyTeamPage() {
           </CardContent>
         </Card>
 
-        <SubmissionForm existingSubmission={team.submission} />
+        <SubmissionForm
+          existingSubmission={team.submission}
+          problemStatements={problemStatements}
+        />
 
         {team.evaluations.length > 0 && (
           <Card>
