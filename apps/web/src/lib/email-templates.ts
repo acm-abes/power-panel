@@ -262,3 +262,82 @@ export function generateInaugurationInviteEmail(
 
   return { subject, html };
 }
+
+/**
+ * Template: Panel Discussion Invite
+ */
+export function generatePanelDiscussionEmail(
+  recipientName: string,
+  data: {
+    youtubeLink: string;
+  },
+): { subject: string; html: string } {
+  const subject = `SAH 2.0 | Live Panel Discussion - What Makes Engineering 'Serious'?`;
+
+  const html = `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body { margin: 0; padding: 0; font-family: Arial, sans-serif; }
+        .container { max-width: 600px; margin: 0 auto; }
+    </style>
+</head>
+<body>
+<div style="font-family:Arial,sans-serif;line-height:1.6;color:#333">
+    <div style="max-width:600px;margin:0 auto;padding:20px">
+        ${getEmailHeader()}
+       
+        <div style="padding:20px;background:#f9f9f9">
+            <p style="font-style:italic;color:#555;border-left:3px solid #00d4ff;padding-left:15px;margin:20px 0">
+                Do you know why most projects never go beyond a demo?<br>
+                Because they tackle something that looks impressive, not something that truly matters.
+            </p>
+
+            <p>Dear ${recipientName},</p>
+           
+            <p>Tonight, we are going <b>LIVE on YouTube</b> with a high-impact panel discussion that gets straight to the core of engineering reality.</p>
+           
+            <div style="background:#e8f4f8;padding:20px;border-left:4px solid #00d4ff;margin:20px 0">
+                <p style="margin:0 0 10px 0;font-size:18px;font-weight:bold;color:#00695c">🎙️ Panel Discussion</p>
+                <p style="margin:0;font-size:16px;font-weight:bold">What Makes a Problem and a Solution 'Serious' in Engineering?</p>
+            </div>
+
+            <div style="margin:20px 0">
+                <p style="margin:5px 0"><b>🗓 Date:</b> 8 February 2026</p>
+                <p style="margin:5px 0"><b>⏰ Time:</b> 7:00 PM (IST)</p>
+                <p style="margin:5px 0"><b>📺 Platform:</b> Live-streamed on <a href="${data.youtubeLink}" style="color:#00d4ff;font-weight:bold">YouTube</a></p>
+            </div>
+
+            <p>This session features <b>industry experts, system builders, and ecosystem contributors</b> who work at the intersection of engineering, problem framing, and real-world impact.</p>
+           
+            <p>The discussion goes beyond hackathons and tools. It focuses on how serious problems are identified, how constraints and trade-offs shape solutions, and what sets meaningful engineering apart from superficial implementation. Panelists will also share what they repeatedly observe when evaluating projects across the ecosystem.</p>
+
+            <div style="margin:25px 0">
+                <p style="margin:0 0 10px 0;font-size:16px;font-weight:bold;color:#333">🔥 What you will learn</p>
+                <ul style="color:#555;line-height:1.8;margin:10px 0;padding-left:20px">
+                    <li>How real problems are framed in industry and engineering ecosystems</li>
+                    <li>What technical seriousness really means in practice</li>
+                    <li>Where algorithms and system design offer genuine leverage</li>
+                    <li>Why many solutions fail despite appearing complete</li>
+                    <li>How depth is assessed beyond demos and presentations</li>
+                </ul>
+            </div>
+
+            <p><b>If you are building for SAH 2.0, this session will directly influence your thinking and building process.</b></p>
+
+            <p style="margin:25px 0;font-size:15px;color:#555">Join us live and reconsider what truly defines serious engineering.</p>
+           
+            <p>Regards,<br>
+            <strong>SAH 2.0 Organising Team</strong></p>
+        </div>
+       
+        ${getEmailFooter()}
+    </div>
+</div>
+</body>
+</html>`;
+
+  return { subject, html };
+}
