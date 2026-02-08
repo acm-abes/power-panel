@@ -12,11 +12,15 @@ console.log(`🔄 Concurrency: ${CONCURRENCY} jobs at a time`);
 console.log(
   `⏱️  Rate Limit: ${RATE_LIMIT.max} emails per ${RATE_LIMIT.duration}ms`,
 );
+console.log(`📦 Queue Name: ${QUEUE_NAME}`);
+console.log(`🔗 Redis URL: ${connection.url || "localhost:6379"}`);
 console.log("");
 
 const worker = new Worker(
   QUEUE_NAME,
   async (job) => {
+    console.log(`\n🔧 Processing job: ${job.name} (ID: ${job.id})`);
+
     switch (job.name) {
       case SEND_MAIL_JOB:
         await sendMailHandler(job.data);
@@ -34,6 +38,22 @@ const worker = new Worker(
     limiter: RATE_LIMIT,
   },
 );
+
+worker.on("completed", (job) => {
+  console.log(`✅ Job ${job.id} completed: ${job.name}`);
+});
+
+worker.on("failed", (job, err) => {
+  console.error(`❌ Job ${job?.id} failed: ${job?.name}`, err.message);
+});
+
+worker.on("ready", () => {
+  console.log("🚀 Worker is ready and listening for jobs...\n");
+});
+
+worker.on("error", (err) => {
+  console.error("❌ Worker error:", err);
+});
 
 process.on("SIGTERM", async () => {
   console.log("");
