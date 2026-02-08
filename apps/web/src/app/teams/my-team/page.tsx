@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/table";
 import { headers } from "next/headers";
 import { Page, PageContent, PageHeading } from "@/components/page";
+import { SubmissionForm } from "@/components/submission-form";
 
 export default async function MyTeamPage() {
   const session = await auth.api.getSession({
@@ -37,6 +38,7 @@ export default async function MyTeamPage() {
               user: true,
             },
           },
+          submission: true,
           evaluations: {
             where: {
               submittedAt: {
@@ -98,10 +100,7 @@ export default async function MyTeamPage() {
 
   return (
     <Page>
-      <PageHeading
-        title={team.name}
-        badge={team.track && <Badge variant="outline">{team.track}</Badge>}
-      />
+      <PageHeading title={team.name} />
       <PageContent>
         <Card>
           <CardHeader>
@@ -167,6 +166,8 @@ export default async function MyTeamPage() {
             </div>
           </CardContent>
         </Card>
+
+        <SubmissionForm existingSubmission={team.submission} />
 
         {team.evaluations.length > 0 && (
           <Card>

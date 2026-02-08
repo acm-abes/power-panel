@@ -94,6 +94,17 @@ export function NavLinks({
             Results
           </Link>
           <Link
+            href="/admin/submissions"
+            className={cn(
+              "text-sm font-medium transition-colors hover:text-primary",
+              pathname === "/admin/submissions"
+                ? "text-foreground"
+                : "text-muted-foreground",
+            )}
+          >
+            Submissions
+          </Link>
+          <Link
             href="/admin/analytics"
             className={cn(
               "text-sm font-medium transition-colors hover:text-primary",

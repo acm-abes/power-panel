@@ -3,7 +3,7 @@
 "use client";
 
 import { useState } from "react";
-import { assignRole, removeRole } from "@/actions/assign-roles";
+import { assignRole } from "@/actions/assign-roles";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -12,8 +12,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
-import { X } from "lucide-react";
 
 interface RoleAssignmentFormProps {
   userId: string;
@@ -50,19 +48,6 @@ export function RoleAssignmentForm({
     }
   };
 
-  const handleRemoveRole = async (roleName: string) => {
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      await removeRole(userId, roleName);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to remove role");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   return (
     <div className="space-y-2">
       {error && (
@@ -77,7 +62,7 @@ export function RoleAssignmentForm({
           onValueChange={setSelectedRole}
           disabled={isLoading || availableToAdd.length === 0}
         >
-          <SelectTrigger className="w-[180px]">
+          <SelectTrigger className="w-45">
             <SelectValue
               placeholder={
                 availableToAdd.length === 0 ? "All assigned" : "Add role"
