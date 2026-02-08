@@ -6,6 +6,7 @@ import { connection } from "@power/job-runtime/connection";
 import { SEND_MAIL_JOB, sendMailHandler } from "@power/jobs/send-mail";
 import { CONCURRENCY, QUEUE_NAME, RATE_LIMIT } from "./config/queue";
 import { UPLOAD_JOB, uploadHandler } from "@power/jobs/upload";
+import { DELETE_JOB, deleteHandler } from "@power/jobs/delete";
 
 console.log("📨 SAH 2.0 Email Worker starting...");
 console.log(`🔄 Concurrency: ${CONCURRENCY} jobs at a time`);
@@ -28,6 +29,9 @@ const worker = new Worker(
       case UPLOAD_JOB:
         await uploadHandler(job.data);
         break;
+      case DELETE_JOB:
+        await deleteHandler(job.data);
+        break;
       default:
         throw new Error(`Unknown job type: ${job.name}`);
     }
@@ -45,10 +49,6 @@ worker.on("completed", (job) => {
 
 worker.on("failed", (job, err) => {
   console.error(`❌ Job ${job?.id} failed: ${job?.name}`, err.message);
-});
-
-worker.on("ready", () => {
-  console.log("🚀 Worker is ready and listening for jobs...\n");
 });
 
 worker.on("error", (err) => {

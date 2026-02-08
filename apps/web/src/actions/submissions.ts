@@ -6,6 +6,7 @@ import { prisma } from "@power/db";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
+import { enqueueDelete } from "@power/job-runtime/enqueueDelete";
 
 export type SubmissionData = {
   psId: string;
@@ -51,6 +52,12 @@ export async function createOrUpdateSubmission(data: SubmissionData) {
     throw new Error("Submission is locked and cannot be modified");
   }
 
+  // If updating and the document path changed, enqueue deletion of old file
+  const oldDocumentPath = team.submission?.documentPath;
+  const isUpdate = !!team.submission;
+  const documentChanged =
+    oldDocumentPath && oldDocumentPath !== data.documentPath;
+
   // Create or update submission
   const submission = await prisma.submission.upsert({
     where: {
@@ -71,6 +78,14 @@ export async function createOrUpdateSubmission(data: SubmissionData) {
       updatedAt: new Date(),
     },
   });
+
+  // After successful database update, enqueue deletion of old file if document changed
+  if (documentChanged && oldDocumentPath) {
+    await enqueueDelete({
+      path: oldDocumentPath,
+      reason: "Submission updated with new document",
+    });
+  }
 
   revalidatePath("/teams/my-team");
   revalidatePath("/admin/submissions");
@@ -119,10 +134,20 @@ export async function deleteSubmission() {
     throw new Error("Submission is locked and cannot be deleted");
   }
 
+  // Store the document path before deletion
+  const documentPath = team.submission.documentPath;
+
+  // Delete from database
   await prisma.submission.delete({
     where: {
       id: team.submission.id,
     },
+  });
+
+  // Enqueue job to delete file from S3
+  await enqueueDelete({
+    path: documentPath,
+    reason: "Submission deleted by team",
   });
 
   revalidatePath("/teams/my-team");
