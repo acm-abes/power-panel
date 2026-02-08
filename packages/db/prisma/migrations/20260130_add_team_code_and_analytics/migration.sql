@@ -89,12 +89,11 @@ BEGIN
             
             -- If temp team data exists, insert into team table
             IF FOUND THEN
-                INSERT INTO team (id, name, "teamCode", track, "createdAt", "updatedAt")
+                INSERT INTO team (id, name, "teamCode", "createdAt", "updatedAt")
                 VALUES (
                     temp_team.id,
                     temp_team.name,
                     temp_team."teamCode",
-                    temp_team.track,
                     temp_team."createdAt",
                     temp_team."updatedAt"
                 )

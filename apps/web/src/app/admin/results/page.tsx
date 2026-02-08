@@ -126,13 +126,6 @@ export default async function ResultsPage() {
                         </div>
                       </TableCell>
                       <TableCell>
-                        {team.track ? (
-                          <Badge variant="outline">{team.track}</Badge>
-                        ) : (
-                          <span className="text-muted-foreground">-</span>
-                        )}
-                      </TableCell>
-                      <TableCell>
                         <Badge
                           variant={
                             team.evaluationCount > 0 ? "default" : "secondary"

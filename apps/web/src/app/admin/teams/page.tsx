@@ -75,11 +75,6 @@ export default async function PendingTeamsPage() {
                       </div>
                       <div className="flex-1 text-left">
                         <div className="font-semibold">{team.name}</div>
-                        {team.track && (
-                          <div className="text-sm text-muted-foreground">
-                            {team.track}
-                          </div>
-                        )}
                       </div>
                       <div className="flex gap-2">
                         <Badge variant="outline">

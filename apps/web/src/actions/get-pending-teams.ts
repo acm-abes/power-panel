@@ -15,7 +15,6 @@ export type PendingTeamMember = {
 export type PendingTeam = {
   id: string;
   name: string;
-  track: string | null;
   members: PendingTeamMember[];
   status: "complete" | "partial" | "incomplete";
 };
@@ -82,7 +81,6 @@ export async function getPendingTeams(): Promise<PendingTeam[]> {
     return {
       id: team.id,
       name: team.name,
-      track: team.track,
       members: teamMembers,
       status,
     };

@@ -188,11 +188,6 @@ export default async function DashboardPage() {
               <div className="space-y-2">
                 <div>
                   <span className="font-semibold">{userTeam.team.name}</span>
-                  {userTeam.team.track && (
-                    <Badge variant="outline" className="ml-2">
-                      {userTeam.team.track}
-                    </Badge>
-                  )}
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">

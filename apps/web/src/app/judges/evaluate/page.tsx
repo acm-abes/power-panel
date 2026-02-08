@@ -108,11 +108,6 @@ export default async function JudgesEvaluatePage() {
                   <Card key={assignment.id}>
                     <CardHeader>
                       <CardTitle>{assignment.team.name}</CardTitle>
-                      {assignment.team.track && (
-                        <CardDescription>
-                          Track: {assignment.team.track}
-                        </CardDescription>
-                      )}
                     </CardHeader>
                     <CardContent>
                       <a
@@ -138,11 +133,6 @@ export default async function JudgesEvaluatePage() {
                   <Card key={assignment.id}>
                     <CardHeader>
                       <CardTitle>{assignment.team.name}</CardTitle>
-                      {assignment.team.track && (
-                        <CardDescription>
-                          Track: {assignment.team.track}
-                        </CardDescription>
-                      )}
                     </CardHeader>
                     <CardContent>
                       <span className="text-sm text-muted-foreground">

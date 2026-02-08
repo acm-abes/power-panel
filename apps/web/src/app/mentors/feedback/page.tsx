@@ -105,11 +105,6 @@ export default async function MentorFeedbackPage() {
                           <CardTitle className="text-base">
                             {team.name}
                           </CardTitle>
-                          {team.track && (
-                            <Badge variant="outline" className="mt-1">
-                              {team.track}
-                            </Badge>
-                          )}
                         </div>
                       </div>
                     </CardHeader>
