@@ -11,6 +11,7 @@ import {
   getIncompleteTeamsData,
   type EmailListOption,
   type EmailPreset,
+  EmailData,
 } from "@/actions/send-emails";
 
 export function useEmailSender() {
@@ -31,6 +32,59 @@ export function useEmailSender() {
       cid: string;
     }>
   >([]);
+
+  // Load emails by option mutation
+  const loadEmailsMutation = useMutation({
+    mutationFn: (option: EmailListOption) => getEmailsByOption(option),
+    onSuccess: (response) => {
+      if (response.success) {
+        setEmails(response.emails);
+        toast.success(`Loaded ${response.count} emails`);
+      } else {
+        toast.error(response.error || "Failed to load emails");
+      }
+    },
+  });
+
+  // Load incomplete teams mutation
+  const loadIncompleteTeamsMutation = useMutation({
+    mutationFn: () => getIncompleteTeamsData(),
+    onSuccess: (response) => {
+      if (response.success) {
+        const allEmails = response.teams.flatMap((team) => team.emails);
+        const uniqueEmails = [...new Set(allEmails)];
+        setEmails(uniqueEmails);
+        toast.success(
+          `Loaded ${uniqueEmails.length} emails from ${response.count} incomplete teams`,
+        );
+      } else {
+        toast.error(response.error || "Failed to load incomplete teams");
+      }
+    },
+  });
+
+  // Send emails mutation
+  const sendEmailsMutation = useMutation({
+    mutationFn: ({
+      emails,
+      preset,
+      customData,
+    }: {
+      emails: string[];
+      preset: EmailPreset;
+      customData: EmailData;
+    }) => sendEmails(emails, preset, customData),
+    onSuccess: (response) => {
+      if (response.success) {
+        toast.success(
+          response.message ||
+            `Successfully sent emails to ${response.sent} recipients`,
+        );
+      } else {
+        toast.error(response.error || "Failed to send emails");
+      }
+    },
+  });
 
   const addEmail = (email: string) => {
     const trimmedEmail = email.trim().toLowerCase();

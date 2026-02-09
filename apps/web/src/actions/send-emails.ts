@@ -320,24 +320,28 @@ export async function getIncompleteTeamsData() {
   }
 }
 
+export type EmailData =
+  | {
+      cc?: string;
+      bcc?: string;
+      subject?: string;
+      html?: string;
+      attachments?: Array<{
+        filename: string;
+        content: string;
+        contentType: string;
+        cid?: string;
+      }>;
+    }
+  | undefined;
+
 /**
  * Send emails based on preset and email list
  */
 export async function sendEmails(
   emails: string[],
   preset: EmailPreset,
-  customData?: {
-    cc?: string;
-    bcc?: string;
-    subject?: string;
-    html?: string;
-    attachments?: Array<{
-      filename: string;
-      content: string;
-      contentType: string;
-      cid?: string;
-    }>;
-  },
+  customData: EmailData,
 ) {
   try {
     if (emails.length === 0) {
