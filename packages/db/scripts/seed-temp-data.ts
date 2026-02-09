@@ -59,97 +59,154 @@ async function seedTempData() {
 
     console.log(`👥 Found ${teamMap.size} unique teams`);
 
-    // Create/update teams and members
+    // Fetch all existing data upfront
+    console.log("📥 Fetching existing data...");
+    const [existingTeams, existingMembers, existingAnalytics] =
+      await Promise.all([
+        prisma.tempTeamData.findMany({
+          select: { id: true, teamCode: true },
+        }),
+        prisma.tempTeamMembers.findMany({
+          select: { userEmail: true, teamId: true },
+        }),
+        prisma.analytics.findMany({
+          select: { serialNo: true },
+        }),
+      ]);
+
+    // Create lookup maps
+    const teamCodeToId = new Map(existingTeams.map((t) => [t.teamCode, t.id]));
+    const existingMemberEmails = new Set(
+      existingMembers.map((m) => `${m.teamId}:${m.userEmail.toLowerCase()}`),
+    );
+    const existingSerialNos = new Set(existingAnalytics.map((a) => a.serialNo));
+
+    // Prepare bulk inserts
+    const teamsToCreate: { name: string; teamCode: string }[] = [];
+    const membersToCreate: { userEmail: string; teamId: string }[] = [];
+    const analyticsToCreate: any[] = [];
+
     let teamsCreated = 0;
     let teamsUpdated = 0;
     let membersCreated = 0;
     let membersSkipped = 0;
-    let analyticsCreated = 0;
 
+    // Identify new teams
     for (const [teamCode, members] of teamMap) {
-      // Get team name from first member
-      const teamName = members[0]["Team Name"];
-
-      // Find or create team by teamCode (unique identifier)
-      let team = await prisma.tempTeamData.findUnique({
-        where: { teamCode },
-      });
-
-      if (!team) {
-        team = await prisma.tempTeamData.create({
-          data: {
-            name: teamName,
-            teamCode: teamCode,
-          },
+      if (!teamCodeToId.has(teamCode)) {
+        teamsToCreate.push({
+          name: members[0]["Team Name"],
+          teamCode: teamCode,
         });
-        teamsCreated++;
-      } else {
-        teamsUpdated++;
       }
+    }
 
-      // Get existing members for this team
-      const existingMembers = await prisma.tempTeamMembers.findMany({
-        where: { teamId: team.id },
-        select: { userEmail: true },
+    // Bulk create teams
+    if (teamsToCreate.length > 0) {
+      console.log(`➕ Creating ${teamsToCreate.length} new teams...`);
+      await prisma.tempTeamData.createMany({
+        data: teamsToCreate,
+        skipDuplicates: true,
+      });
+      teamsCreated = teamsToCreate.length;
+
+      // Fetch newly created teams
+      const newTeams = await prisma.tempTeamData.findMany({
+        where: {
+          teamCode: { in: teamsToCreate.map((t) => t.teamCode) },
+        },
+        select: { id: true, teamCode: true },
       });
 
-      const existingEmails = new Set(
-        existingMembers.map((m) => m.userEmail.toLowerCase()),
-      );
+      // Update lookup map
+      for (const team of newTeams) {
+        teamCodeToId.set(team.teamCode, team.id);
+      }
+    }
 
-      // Create only new team members and analytics records
+    teamsUpdated = teamMap.size - teamsCreated;
+
+    // Prepare members and analytics for bulk insert
+    console.log("🔍 Preparing members and analytics data...");
+    for (const [teamCode, members] of teamMap) {
+      const teamId = teamCodeToId.get(teamCode)!;
+
       for (const member of members) {
         const memberEmail = member["User Email"].toLowerCase();
+        const memberKey = `${teamId}:${memberEmail}`;
 
-        if (!existingEmails.has(memberEmail)) {
-          await prisma.tempTeamMembers.create({
-            data: {
-              userEmail: member["User Email"],
-              teamId: team.id,
-            },
+        // Check if member needs to be created
+        if (!existingMemberEmails.has(memberKey)) {
+          membersToCreate.push({
+            userEmail: member["User Email"],
+            teamId: teamId,
           });
           membersCreated++;
         } else {
           membersSkipped++;
         }
 
-        // Insert analytics data (for all members, even if already in temp table)
-        const existingAnalytics = await prisma.analytics.findUnique({
-          where: { serialNo: member["Serial No."] },
-        });
-
-        if (!existingAnalytics) {
-          await prisma.analytics.create({
-            data: {
-              serialNo: member["Serial No."],
-              teamName: member["Team Name"],
-              teamCode: member["Team Code"],
-              userName: member["User Name"],
-              userEmail: member["User Email"],
-              position: member["Position"],
-              status: member["Status"],
-              submitted: member["Submitted"],
-              joinedAt: member["Joined At"],
-              firstName: member["First Name"],
-              lastName: member["Last Name"],
-              phoneNumber: member["Phone Number"],
-              degreeType: member["Degree Type"],
-              educationLevel: member["Education Level"],
-              graduationYear: member["Graduation Year"],
-              collegeName: member["College Name"],
-              skills: member["Skills"] || null,
-              githubUsername: member["GitHub Username"] || null,
-              portfolioUrl: member["Portfolio URL"] || null,
-              bio: member["Bio"] || null,
-              hackathonExperience: member["Hackathon Experience"] || null,
-              interestedRoles: member["Interested Roles"] || null,
-              dietaryRestrictions: member["Dietary Restrictions"] || null,
-              tshirtSize: member["T-Shirt Size"] || null,
-            },
+        // Check if analytics record needs to be created
+        if (!existingSerialNos.has(member["Serial No."])) {
+          analyticsToCreate.push({
+            serialNo: member["Serial No."],
+            teamName: member["Team Name"],
+            teamCode: member["Team Code"],
+            userName: member["User Name"],
+            userEmail: member["User Email"],
+            position: member["Position"],
+            status: member["Status"],
+            submitted: member["Submitted"],
+            joinedAt: member["Joined At"],
+            firstName: member["First Name"],
+            lastName: member["Last Name"],
+            phoneNumber: member["Phone Number"],
+            degreeType: member["Degree Type"],
+            educationLevel: member["Education Level"],
+            graduationYear: member["Graduation Year"],
+            collegeName: member["College Name"],
+            skills: member["Skills"] || null,
+            githubUsername: member["GitHub Username"] || null,
+            portfolioUrl: member["Portfolio URL"] || null,
+            bio: member["Bio"] || null,
+            hackathonExperience: member["Hackathon Experience"] || null,
+            interestedRoles: member["Interested Roles"] || null,
+            dietaryRestrictions: member["Dietary Restrictions"] || null,
+            tshirtSize: member["T-Shirt Size"] || null,
           });
-          analyticsCreated++;
         }
       }
+    }
+
+    // Bulk insert members and analytics
+    console.log("💾 Bulk inserting data...");
+    const bulkInsertPromises = [];
+
+    if (membersToCreate.length > 0) {
+      console.log(`➕ Creating ${membersToCreate.length} new members...`);
+      bulkInsertPromises.push(
+        prisma.tempTeamMembers.createMany({
+          data: membersToCreate,
+          skipDuplicates: true,
+        }),
+      );
+    }
+
+    if (analyticsToCreate.length > 0) {
+      console.log(
+        `➕ Creating ${analyticsToCreate.length} new analytics records...`,
+      );
+      bulkInsertPromises.push(
+        prisma.analytics.createMany({
+          data: analyticsToCreate,
+          skipDuplicates: true,
+        }),
+      );
+    }
+
+    // Execute bulk inserts in parallel
+    if (bulkInsertPromises.length > 0) {
+      await Promise.all(bulkInsertPromises);
     }
 
     console.log(`✅ Successfully seeded:`);
@@ -157,7 +214,7 @@ async function seedTempData() {
     console.log(`   - ${teamsUpdated} teams already existed`);
     console.log(`   - ${membersCreated} new members added`);
     console.log(`   - ${membersSkipped} members already existed`);
-    console.log(`   - ${analyticsCreated} analytics records created`);
+    console.log(`   - ${analyticsToCreate.length} analytics records created`);
   } catch (error) {
     console.error("❌ Error seeding temp data:", error);
     throw error;

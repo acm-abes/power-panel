@@ -12,5 +12,7 @@ export default defineConfig({
   },
   datasource: {
     url: process.env["DATABASE_URL"],
+    shadowDatabaseUrl:
+      "postgresql://postgres:postgres@host:5432/db?sslmode=require",
   },
 });
