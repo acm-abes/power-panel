@@ -3,6 +3,8 @@
 "use client";
 
 import { useState } from "react";
+import { useMutation } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
 import {
   Table,
   TableBody,
@@ -13,10 +15,10 @@ import {
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { RoleAssignmentForm } from "@/components/role-assignment-form";
 import { Search, X } from "lucide-react";
 import { removeRole } from "@/actions/assign-roles";
+import { toast } from "sonner";
 
 interface User {
   id: string;
@@ -41,7 +43,19 @@ export function UserManagementTable({
   availableRoles,
 }: UserManagementTableProps) {
   const [searchQuery, setSearchQuery] = useState("");
-  const [removingRole, setRemovingRole] = useState<string | null>(null);
+  const router = useRouter();
+
+  const removeRoleMutation = useMutation({
+    mutationFn: ({ userId, roleName }: { userId: string; roleName: string }) =>
+      removeRole(userId, roleName),
+    onSuccess: () => {
+      router.refresh();
+      toast.success("Role removed successfully");
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || "Failed to remove role");
+    },
+  });
 
   const filteredUsers = users.filter((user) => {
     const query = searchQuery.toLowerCase();
@@ -50,14 +64,8 @@ export function UserManagementTable({
     return name.includes(query) || email.includes(query);
   });
 
-  const handleRemoveRole = async (userId: string, roleName: string) => {
-    const key = `${userId}-${roleName}`;
-    setRemovingRole(key);
-    try {
-      await removeRole(userId, roleName);
-    } finally {
-      setRemovingRole(null);
-    }
+  const handleRemoveRole = (userId: string, roleName: string) => {
+    removeRoleMutation.mutate({ userId, roleName });
   };
 
   return (
@@ -107,8 +115,6 @@ export function UserManagementTable({
                         </span>
                       ) : (
                         user.userRoles.map((ur) => {
-                          const key = `${user.id}-${ur.role.name}`;
-                          const isRemoving = removingRole === key;
                           return (
                             <Badge
                               key={ur.id}
@@ -120,7 +126,7 @@ export function UserManagementTable({
                                 onClick={() =>
                                   handleRemoveRole(user.id, ur.role.name)
                                 }
-                                disabled={isRemoving}
+                                disabled={removeRoleMutation.isPending}
                                 className="hover:text-destructive disabled:opacity-50"
                               >
                                 <X className="h-3 w-3" />

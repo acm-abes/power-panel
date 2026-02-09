@@ -3,6 +3,8 @@
 "use client";
 
 import { useState } from "react";
+import { useMutation } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
 import { assignRole } from "@/actions/assign-roles";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,6 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { toast } from "sonner";
 
 interface RoleAssignmentFormProps {
   userId: string;
@@ -25,42 +28,37 @@ export function RoleAssignmentForm({
   availableRoles,
 }: RoleAssignmentFormProps) {
   const [selectedRole, setSelectedRole] = useState<string>("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
+
+  const assignRoleMutation = useMutation({
+    mutationFn: ({ userId, roleName }: { userId: string; roleName: string }) =>
+      assignRole(userId, roleName),
+    onSuccess: () => {
+      router.refresh();
+      setSelectedRole("");
+      toast.success("Role assigned successfully");
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || "Failed to assign role");
+    },
+  });
 
   const availableToAdd = availableRoles.filter(
     (role) => !currentRoles.includes(role),
   );
 
-  const handleAssignRole = async () => {
+  const handleAssignRole = () => {
     if (!selectedRole) return;
-
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      await assignRole(userId, selectedRole);
-      setSelectedRole("");
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to assign role");
-    } finally {
-      setIsLoading(false);
-    }
+    assignRoleMutation.mutate({ userId, roleName: selectedRole });
   };
 
   return (
     <div className="space-y-2">
-      {error && (
-        <div className="text-xs text-destructive bg-destructive/10 p-2 rounded">
-          {error}
-        </div>
-      )}
-
       <div className="flex items-center gap-2">
         <Select
           value={selectedRole}
           onValueChange={setSelectedRole}
-          disabled={isLoading || availableToAdd.length === 0}
+          disabled={assignRoleMutation.isPending || availableToAdd.length === 0}
         >
           <SelectTrigger className="w-45">
             <SelectValue
@@ -79,10 +77,10 @@ export function RoleAssignmentForm({
         </Select>
         <Button
           onClick={handleAssignRole}
-          disabled={!selectedRole || isLoading}
+          disabled={!selectedRole || assignRoleMutation.isPending}
           size="sm"
         >
-          {isLoading ? "..." : "Add"}
+          {assignRoleMutation.isPending ? "..." : "Add"}
         </Button>
       </div>
     </div>

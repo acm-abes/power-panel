@@ -3,6 +3,8 @@
 "use client";
 
 import { useState } from "react";
+import { useMutation } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
 import { createOrUpdateSubmission } from "@/actions/submissions";
 import { uploadSubmissionFile } from "@/actions/upload-submission";
 import { Button } from "@/components/ui/button";
@@ -24,6 +26,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Loader2, Upload } from "lucide-react";
+import { toast } from "sonner";
 
 interface ProblemStatement {
   id: string;
@@ -41,9 +44,47 @@ export function SubmissionForm({ problemStatements }: SubmissionFormProps) {
   const [psId, setPsId] = useState("");
   const [additionalNotes, setAdditionalNotes] = useState("");
   const [file, setFile] = useState<File | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
+  const router = useRouter();
+
+  const submissionMutation = useMutation({
+    mutationFn: async ({
+      psId,
+      file,
+      additionalNotes,
+    }: {
+      psId: string;
+      file: File;
+      additionalNotes?: string;
+    }) => {
+      // Upload file to storage service
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const uploadResult = await uploadSubmissionFile(formData);
+
+      // Create submission with uploaded file details
+      return createOrUpdateSubmission({
+        psId,
+        documentPath: uploadResult.path,
+        documentSize: uploadResult.size,
+        additionalNotes: additionalNotes || undefined,
+      });
+    },
+    onSuccess: () => {
+      router.refresh();
+      toast.success("Submission created successfully!");
+      // Reset form
+      setPsId("");
+      setAdditionalNotes("");
+      setFile(null);
+      // Reset file input
+      const fileInput = document.getElementById("document") as HTMLInputElement;
+      if (fileInput) fileInput.value = "";
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || "Failed to submit");
+    },
+  });
 
   // Group problem statements by track
   const groupedPS = problemStatements.reduce(
@@ -57,51 +98,20 @@ export function SubmissionForm({ problemStatements }: SubmissionFormProps) {
     {} as Record<string, ProblemStatement[]>,
   );
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!psId) {
-      setError("Problem Statement is required");
+      toast.error("Problem Statement is required");
       return;
     }
 
     if (!file) {
-      setError("Document file is required");
+      toast.error("Document file is required");
       return;
     }
 
-    setIsLoading(true);
-    setError(null);
-    setSuccess(null);
-
-    try {
-      // Upload file to storage service
-      const formData = new FormData();
-      formData.append("file", file);
-
-      const uploadResult = await uploadSubmissionFile(formData);
-
-      // Create submission with uploaded file details
-      await createOrUpdateSubmission({
-        psId,
-        documentPath: uploadResult.path,
-        documentSize: uploadResult.size,
-        additionalNotes: additionalNotes || undefined,
-      });
-
-      setSuccess("Submission created successfully!");
-      // Reset form
-      setPsId("");
-      setAdditionalNotes("");
-      setFile(null);
-      // Reset file input
-      const fileInput = document.getElementById("document") as HTMLInputElement;
-      if (fileInput) fileInput.value = "";
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to submit");
-    } finally {
-      setIsLoading(false);
-    }
+    submissionMutation.mutate({ psId, file, additionalNotes });
   };
 
   return (
@@ -115,22 +125,15 @@ export function SubmissionForm({ problemStatements }: SubmissionFormProps) {
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
-          {error && (
-            <div className="text-sm text-destructive bg-destructive/10 p-3 rounded-md">
-              {error}
-            </div>
-          )}
-          {success && (
-            <div className="text-sm text-green-600 bg-green-50 dark:bg-green-950 p-3 rounded-md">
-              {success}
-            </div>
-          )}
-
           <div className="space-y-2">
             <Label htmlFor="psId">
               Problem Statement <span className="text-destructive">*</span>
             </Label>
-            <Select value={psId} onValueChange={setPsId} disabled={isLoading}>
+            <Select
+              value={psId}
+              onValueChange={setPsId}
+              disabled={submissionMutation.isPending}
+            >
               <SelectTrigger id="psId">
                 <SelectValue placeholder="Select a problem statement" />
               </SelectTrigger>
@@ -181,7 +184,7 @@ export function SubmissionForm({ problemStatements }: SubmissionFormProps) {
               id="document"
               type="file"
               onChange={(e) => setFile(e.target.files?.[0] || null)}
-              disabled={isLoading}
+              disabled={submissionMutation.isPending}
               accept=".pdf,.doc,.docx,.ppt,.pptx"
             />
             <p className="text-xs text-muted-foreground">
@@ -210,12 +213,12 @@ export function SubmissionForm({ problemStatements }: SubmissionFormProps) {
               onChange={(e) => setAdditionalNotes(e.target.value)}
               placeholder="Add any additional information or recommendations..."
               rows={4}
-              disabled={isLoading}
+              disabled={submissionMutation.isPending}
             />
           </div>
 
-          <Button type="submit" disabled={isLoading}>
-            {isLoading ? (
+          <Button type="submit" disabled={submissionMutation.isPending}>
+            {submissionMutation.isPending ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 Submitting...

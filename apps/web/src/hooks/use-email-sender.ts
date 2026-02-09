@@ -2,7 +2,8 @@
 
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState } from "react";
+import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
   getEmailsByOption,
@@ -16,7 +17,6 @@ export function useEmailSender() {
   const [emails, setEmails] = useState<string[]>([]);
   const [selectedPreset, setSelectedPreset] =
     useState<EmailPreset>("INCOMPLETE_TEAM");
-  const [isPending, startTransition] = useTransition();
 
   // Custom email data
   const [customCc, setCustomCc] = useState<string[]>([]);
@@ -118,81 +118,47 @@ export function useEmailSender() {
     setCustomAttachments((prev) => prev.filter((a) => a.cid !== cid));
   };
 
-  const loadEmailsByOption = async (option: EmailListOption) => {
-    startTransition(async () => {
-      const response = await getEmailsByOption(option);
-
-      if (response.success) {
-        setEmails(response.emails);
-        toast.success(`Loaded ${response.count} emails`);
-      } else {
-        toast.error(response.error || "Failed to load emails");
-      }
-    });
+  const loadEmailsByOption = (option: EmailListOption) => {
+    loadEmailsMutation.mutate(option);
   };
 
-  const loadIncompleteTeamsEmails = async () => {
-    startTransition(async () => {
-      const response = await getIncompleteTeamsData();
-
-      if (response.success) {
-        const allEmails = response.teams.flatMap((team) => team.emails);
-        const uniqueEmails = [...new Set(allEmails)];
-        setEmails(uniqueEmails);
-        toast.success(
-          `Loaded ${uniqueEmails.length} emails from ${response.count} incomplete teams`,
-        );
-      } else {
-        toast.error(response.error || "Failed to load incomplete teams");
-      }
-    });
+  const loadIncompleteTeamsEmails = () => {
+    loadIncompleteTeamsMutation.mutate();
   };
 
-  const sendEmailsToList = async () => {
+  const sendEmailsToList = () => {
     if (emails.length === 0) {
       toast.error("No emails in list");
       return;
     }
 
-    startTransition(async () => {
-      const loadingToast = toast.loading("Sending emails...");
+    const customData =
+      selectedPreset === "CUSTOM"
+        ? {
+            cc: customCc.length > 0 ? customCc.join(", ") : undefined,
+            bcc: customBcc.length > 0 ? customBcc.join(", ") : undefined,
+            subject: customSubject,
+            html: customHtml,
+            attachments:
+              customAttachments.length > 0 ? customAttachments : undefined,
+          }
+        : {
+            cc: customCc.length > 0 ? customCc.join(", ") : undefined,
+            bcc: customBcc.length > 0 ? customBcc.join(", ") : undefined,
+            attachments:
+              customAttachments.length > 0 ? customAttachments : undefined,
+          };
 
-      const customData =
-        selectedPreset === "CUSTOM"
-          ? {
-              cc: customCc.length > 0 ? customCc.join(", ") : undefined,
-              bcc: customBcc.length > 0 ? customBcc.join(", ") : undefined,
-              subject: customSubject,
-              html: customHtml,
-              attachments:
-                customAttachments.length > 0 ? customAttachments : undefined,
-            }
-          : {
-              cc: customCc.length > 0 ? customCc.join(", ") : undefined,
-              bcc: customBcc.length > 0 ? customBcc.join(", ") : undefined,
-              attachments:
-                customAttachments.length > 0 ? customAttachments : undefined,
-            };
-
-      const response = await sendEmails(emails, selectedPreset, customData);
-
-      toast.dismiss(loadingToast);
-
-      if (response.success) {
-        toast.success(
-          response.message ||
-            `Successfully sent emails to ${response.sent} recipients`,
-        );
-      } else {
-        toast.error(response.error || "Failed to send emails");
-      }
-    });
+    sendEmailsMutation.mutate({ emails, preset: selectedPreset, customData });
   };
 
   return {
     emails,
     selectedPreset,
-    isPending,
+    isPending:
+      loadEmailsMutation.isPending ||
+      loadIncompleteTeamsMutation.isPending ||
+      sendEmailsMutation.isPending,
     customCc,
     customBcc,
     customSubject,

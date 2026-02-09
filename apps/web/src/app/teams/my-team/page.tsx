@@ -2,7 +2,9 @@
 
 import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
-import { prisma } from "@power/db";
+import { getMyTeam } from "@/actions/get-my-team";
+import { getAllProblemStatements } from "@/actions/problem-statements";
+import { Page, PageContent, PageHeading } from "@/components/page";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -14,10 +16,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { headers } from "next/headers";
-import { Page, PageContent, PageHeading } from "@/components/page";
 import { SubmissionForm } from "@/components/submission-form";
 import { SubmissionDetails } from "@/components/submission-details";
-import { getAllProblemStatements } from "@/actions/problem-statements";
 
 export default async function MyTeamPage() {
   const session = await auth.api.getSession({
@@ -28,46 +28,8 @@ export default async function MyTeamPage() {
     redirect("/sign-in");
   }
 
-  const teamMembership = await prisma.teamMember.findFirst({
-    where: {
-      userId: session.user.id,
-    },
-    include: {
-      team: {
-        include: {
-          members: {
-            include: {
-              user: true,
-            },
-          },
-          submission: true,
-          evaluations: {
-            where: {
-              submittedAt: {
-                not: null,
-              },
-            },
-            include: {
-              judge: true,
-              scores: {
-                include: {
-                  criterion: true,
-                },
-              },
-            },
-          },
-          mentorFeedbacks: {
-            include: {
-              mentor: true,
-            },
-            orderBy: {
-              createdAt: "desc",
-            },
-          },
-        },
-      },
-    },
-  });
+  const teamMembership = await getMyTeam();
+  const problemStatements = await getAllProblemStatements();
 
   if (!teamMembership) {
     return (
@@ -88,10 +50,7 @@ export default async function MyTeamPage() {
 
   const team = teamMembership.team;
 
-  // Fetch problem statements for the submission form
-  const problemStatements = await getAllProblemStatements();
-
-  // Calculate average score
+  // Calculate team statistics
   const totalScore = team.evaluations.reduce((teamTotal, evaluation) => {
     const evaluationTotal = evaluation.scores.reduce(
       (sum, score) => sum + score.score,
@@ -201,7 +160,8 @@ export default async function MyTeamPage() {
                             Judge: {evaluation.judge.name}
                           </CardTitle>
                           <Badge>
-                            Total: {evalTotal + evaluation.extraPoints}
+                            Total:{" "}
+                            {(evalTotal + evaluation.extraPoints).toFixed(2)}
                           </Badge>
                         </div>
                       </CardHeader>
@@ -218,22 +178,13 @@ export default async function MyTeamPage() {
                           <TableBody>
                             {evaluation.scores.map((score) => (
                               <TableRow key={score.id}>
-                                <TableCell>
-                                  <div>
-                                    <p className="font-medium">
-                                      {score.criterion.subject}
-                                    </p>
-                                    <p className="text-sm text-muted-foreground">
-                                      {score.criterion.description}
-                                    </p>
-                                  </div>
-                                </TableCell>
+                                <TableCell>{score.criterion.key}</TableCell>
                                 <TableCell className="text-right">
-                                  {score.score} / {score.criterion.fullMark}
+                                  {score.score}
                                 </TableCell>
                               </TableRow>
                             ))}
-                            {evaluation.extraPoints !== 0 && (
+                            {evaluation.extraPoints > 0 && (
                               <TableRow>
                                 <TableCell className="font-medium">
                                   Extra Points
@@ -247,8 +198,8 @@ export default async function MyTeamPage() {
                         </Table>
                         {evaluation.extraJustification && (
                           <div className="mt-4">
-                            <p className="text-sm font-medium mb-1">
-                              Justification:
+                            <p className="text-sm font-semibold">
+                              Extra Points Justification:
                             </p>
                             <p className="text-sm text-muted-foreground">
                               {evaluation.extraJustification}
@@ -284,7 +235,9 @@ export default async function MyTeamPage() {
                       </div>
                     </CardHeader>
                     <CardContent>
-                      <p className="text-sm">{feedback.content}</p>
+                      <p className="text-sm whitespace-pre-wrap">
+                        {feedback.content}
+                      </p>
                     </CardContent>
                   </Card>
                 ))}
@@ -296,3 +249,119 @@ export default async function MyTeamPage() {
     </Page>
   );
 }
+
+//         {team.evaluations.length > 0 && (
+//           <Card>
+//             <CardHeader>
+//               <CardTitle>Evaluations</CardTitle>
+//             </CardHeader>
+//             <CardContent>
+//               <div className="space-y-4">
+//                 {team.evaluations.map((evaluation) => {
+//                   const evalTotal = evaluation.scores.reduce(
+//                     (sum, score) => sum + score.score,
+//                     0,
+//                   );
+//                   return (
+//                     <Card key={evaluation.id}>
+//                       <CardHeader>
+//                         <div className="flex justify-between items-center">
+//                           <CardTitle className="text-base">
+//                             Judge: {evaluation.judge.name}
+//                           </CardTitle>
+//                           <Badge>
+//                             Total: {evalTotal + evaluation.extraPoints}
+//                           </Badge>
+//                         </div>
+//                       </CardHeader>
+//                       <CardContent>
+//                         <Table>
+//                           <TableHeader>
+//                             <TableRow>
+//                               <TableHead>Criterion</TableHead>
+//                               <TableHead className="text-right">
+//                                 Score
+//                               </TableHead>
+//                             </TableRow>
+//                           </TableHeader>
+//                           <TableBody>
+//                             {evaluation.scores.map((score) => (
+//                               <TableRow key={score.id}>
+//                                 <TableCell>
+//                                   <div>
+//                                     <p className="font-medium">
+//                                       {score.criterion.subject}
+//                                     </p>
+//                                     <p className="text-sm text-muted-foreground">
+//                                       {score.criterion.description}
+//                                     </p>
+//                                   </div>
+//                                 </TableCell>
+//                                 <TableCell className="text-right">
+//                                   {score.score} / {score.criterion.fullMark}
+//                                 </TableCell>
+//                               </TableRow>
+//                             ))}
+//                             {evaluation.extraPoints !== 0 && (
+//                               <TableRow>
+//                                 <TableCell className="font-medium">
+//                                   Extra Points
+//                                 </TableCell>
+//                                 <TableCell className="text-right font-medium">
+//                                   {evaluation.extraPoints}
+//                                 </TableCell>
+//                               </TableRow>
+//                             )}
+//                           </TableBody>
+//                         </Table>
+//                         {evaluation.extraJustification && (
+//                           <div className="mt-4">
+//                             <p className="text-sm font-medium mb-1">
+//                               Justification:
+//                             </p>
+//                             <p className="text-sm text-muted-foreground">
+//                               {evaluation.extraJustification}
+//                             </p>
+//                           </div>
+//                         )}
+//                       </CardContent>
+//                     </Card>
+//                   );
+//                 })}
+//               </div>
+//             </CardContent>
+//           </Card>
+//         )}
+
+//         {team.mentorFeedbacks.length > 0 && (
+//           <Card>
+//             <CardHeader>
+//               <CardTitle>Mentor Feedback</CardTitle>
+//             </CardHeader>
+//             <CardContent>
+//               <div className="space-y-4">
+//                 {team.mentorFeedbacks.map((feedback) => (
+//                   <Card key={feedback.id}>
+//                     <CardHeader>
+//                       <div className="flex justify-between items-center">
+//                         <CardTitle className="text-base">
+//                           {feedback.mentor.name}
+//                         </CardTitle>
+//                         <span className="text-sm text-muted-foreground">
+//                           {new Date(feedback.createdAt).toLocaleDateString()}
+//                         </span>
+//                       </div>
+//                     </CardHeader>
+//                     <CardContent>
+//                       <p className="text-sm">{feedback.content}</p>
+//                     </CardContent>
+//                   </Card>
+//                 ))}
+//               </div>
+//             </CardContent>
+//           </Card>
+//         )}
+//       </PageContent>
+//     </Page>
+//   );
+// }
