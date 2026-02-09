@@ -118,7 +118,6 @@ export function TeamsFilterClient({ teams }: TeamsFilterClientProps) {
           variant={filter === "complete" ? "default" : "outline"}
           size="sm"
           onClick={() => setFilter("complete")}
-          className={filter === "complete" ? "" : "hover:bg-green-50"}
         >
           <CheckCircle className="h-4 w-4 mr-1" />
           Complete ({teams.filter((t) => t.status === "complete").length})
@@ -127,7 +126,6 @@ export function TeamsFilterClient({ teams }: TeamsFilterClientProps) {
           variant={filter === "partial" ? "default" : "outline"}
           size="sm"
           onClick={() => setFilter("partial")}
-          className={filter === "partial" ? "" : "hover:bg-yellow-50"}
         >
           <AlertCircle className="h-4 w-4 mr-1" />
           Partial ({teams.filter((t) => t.status === "partial").length})
@@ -136,7 +134,6 @@ export function TeamsFilterClient({ teams }: TeamsFilterClientProps) {
           variant={filter === "incomplete" ? "default" : "outline"}
           size="sm"
           onClick={() => setFilter("incomplete")}
-          className={filter === "incomplete" ? "" : "hover:bg-red-50"}
         >
           <XCircle className="h-4 w-4 mr-1" />
           Incomplete ({teams.filter((t) => t.status === "incomplete").length})
