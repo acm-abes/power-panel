@@ -24,10 +24,12 @@ export function NavLinks({
   return (
     <div className="flex items-center gap-4">
       <Link
-        href="/"
+        href="/dashboard"
         className={cn(
           "text-sm font-medium transition-colors hover:text-primary",
-          pathname === "/" ? "text-foreground" : "text-muted-foreground",
+          pathname === "/dashboard"
+            ? "text-foreground"
+            : "text-muted-foreground",
         )}
       >
         Dashboard
