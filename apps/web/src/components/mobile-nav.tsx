@@ -2,6 +2,7 @@
 
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Menu } from "lucide-react";
@@ -32,6 +33,7 @@ export function MobileNav({
 }: MobileNavProps) {
   const pathname = usePathname();
   const router = useRouter();
+  const [open, setOpen] = useState(false);
 
   const handleSignOut = async () => {
     await signOut();
@@ -39,9 +41,11 @@ export function MobileNav({
     router.replace("/sign-in");
   };
 
+  const closeSheet = () => setOpen(false);
+
   return (
     <div className="md:hidden">
-      <Sheet>
+      <Sheet open={open} onOpenChange={setOpen}>
         <SheetTrigger asChild>
           <Button variant="ghost" size="icon" aria-label="Toggle menu">
             <Menu className="h-5 w-5" />
@@ -57,6 +61,7 @@ export function MobileNav({
           <nav className="flex flex-col gap-4 mt-6 flex-1 overflow-y-auto">
             <Link
               href="/dashboard"
+              onClick={closeSheet}
               className={cn(
                 "px-3 py-2 rounded-md text-sm font-medium transition-colors hover:bg-accent",
                 pathname === "/dashboard"
@@ -70,6 +75,7 @@ export function MobileNav({
             {isJudge && (
               <Link
                 href="/judges/evaluate"
+                onClick={closeSheet}
                 className={cn(
                   "px-3 py-2 rounded-md text-sm font-medium transition-colors hover:bg-accent",
                   pathname === "/judges/evaluate"
@@ -90,6 +96,7 @@ export function MobileNav({
                 </div>
                 <Link
                   href="/admin/users"
+                  onClick={closeSheet}
                   className={cn(
                     "px-3 py-2 rounded-md text-sm font-medium transition-colors hover:bg-accent",
                     pathname === "/admin/users"
@@ -101,6 +108,7 @@ export function MobileNav({
                 </Link>
                 <Link
                   href="/admin/teams"
+                  onClick={closeSheet}
                   className={cn(
                     "px-3 py-2 rounded-md text-sm font-medium transition-colors hover:bg-accent",
                     pathname === "/admin/teams"
@@ -112,6 +120,7 @@ export function MobileNav({
                 </Link>
                 <Link
                   href="/admin/judges"
+                  onClick={closeSheet}
                   className={cn(
                     "px-3 py-2 rounded-md text-sm font-medium transition-colors hover:bg-accent",
                     pathname === "/admin/judges"
@@ -123,6 +132,7 @@ export function MobileNav({
                 </Link>
                 <Link
                   href="/admin/results"
+                  onClick={closeSheet}
                   className={cn(
                     "px-3 py-2 rounded-md text-sm font-medium transition-colors hover:bg-accent",
                     pathname === "/admin/results"
@@ -134,6 +144,7 @@ export function MobileNav({
                 </Link>
                 <Link
                   href="/admin/submissions"
+                  onClick={closeSheet}
                   className={cn(
                     "px-3 py-2 rounded-md text-sm font-medium transition-colors hover:bg-accent",
                     pathname === "/admin/submissions"
@@ -145,6 +156,7 @@ export function MobileNav({
                 </Link>
                 <Link
                   href="/admin/analytics"
+                  onClick={closeSheet}
                   className={cn(
                     "px-3 py-2 rounded-md text-sm font-medium transition-colors hover:bg-accent",
                     pathname === "/admin/analytics"
@@ -156,6 +168,7 @@ export function MobileNav({
                 </Link>
                 <Link
                   href="/admin/email"
+                  onClick={closeSheet}
                   className={cn(
                     "px-3 py-2 rounded-md text-sm font-medium transition-colors hover:bg-accent",
                     pathname === "/admin/email"
@@ -177,6 +190,7 @@ export function MobileNav({
                 </div>
                 <Link
                   href="/mentors/feedback"
+                  onClick={closeSheet}
                   className={cn(
                     "px-3 py-2 rounded-md text-sm font-medium transition-colors hover:bg-accent",
                     pathname === "/mentors/feedback"
@@ -198,6 +212,7 @@ export function MobileNav({
                 </div>
                 <Link
                   href="/teams/my-team"
+                  onClick={closeSheet}
                   className={cn(
                     "px-3 py-2 rounded-md text-sm font-medium transition-colors hover:bg-accent",
                     pathname === "/teams/my-team"
