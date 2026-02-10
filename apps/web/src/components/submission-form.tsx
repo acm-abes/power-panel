@@ -231,7 +231,7 @@ export function SubmissionForm({ problemStatements }: SubmissionFormProps) {
                 The document defining your solution. It must follow the format
                 specified{" "}
                 <a
-                  href=""
+                  href="https://smartabeshackathon.tech/template"
                   className="text-cyan-500"
                   target="_blank"
                   rel="noopener noreferrer"
@@ -256,7 +256,18 @@ export function SubmissionForm({ problemStatements }: SubmissionFormProps) {
               accept=".pdf,.pptx"
             />
             <p className="text-xs text-muted-foreground">
-              Upload your presentation file.
+              <span>
+                The template for PPT can be found here{" "}
+                <a
+                  href="https://smartabeshackathon.tech/template"
+                  className="text-cyan-500"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  here
+                </a>
+                <br />
+              </span>
               <br />
               Accepted formats: PDF, PPTX
             </p>
