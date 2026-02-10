@@ -181,12 +181,11 @@ export async function DashboardParticipant({
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <Link href="/teams">
-              <Button variant="outline" className="w-full">
-                View All Teams
-              </Button>
-            </Link>
-            <Link href="/teams/problem-statements">
+            <Link
+              href="https://smartabeshackathon.tech/problem-statements"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
               <Button variant="outline" className="w-full">
                 Browse Problem Statements
               </Button>
