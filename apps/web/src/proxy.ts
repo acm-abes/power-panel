@@ -4,6 +4,21 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { auth } from "@/lib/auth";
+import { RoleName } from "@power/db";
+import { notFound } from "next/navigation";
+
+const ROUTES: Record<string, RoleName[]> = {
+  "/dashboard": [
+    RoleName.ADMIN,
+    RoleName.JUDGE,
+    RoleName.MENTOR,
+    RoleName.PARTICIPANT,
+  ],
+  "/admin": [RoleName.ADMIN],
+  "/judge": [RoleName.JUDGE],
+  "/mentor": [RoleName.MENTOR],
+  "/participant": [RoleName.PARTICIPANT],
+};
 
 export async function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
@@ -34,6 +49,19 @@ export async function proxy(request: NextRequest) {
   // If authenticated and trying to access sign-in/sign-up, redirect to home
   if (session && isPublicRoute) {
     return NextResponse.redirect(new URL("/", request.url));
+  }
+
+  const userRoles = session?.user.userRoles.map((ur) => ur.role.name) || [];
+
+  const requiredRoles = Object.entries(ROUTES).find(([route]) =>
+    pathname.startsWith(route),
+  )?.[1];
+
+  if (
+    requiredRoles &&
+    !requiredRoles.some((role) => userRoles.includes(role))
+  ) {
+    return notFound();
   }
 
   return NextResponse.next();
