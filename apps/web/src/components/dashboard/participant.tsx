@@ -167,7 +167,7 @@ export async function DashboardParticipant({
                 You haven&apos;t submitted your project yet.
               </p>
               <Link href="/teams/submission">
-                <Button>Submit Your Project</Button>
+                <Button>Create your Submission</Button>
               </Link>
             </div>
           )}
