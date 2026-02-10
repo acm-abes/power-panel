@@ -73,6 +73,15 @@ export default async function MyTeamPage() {
           <CardContent>
             <div className="space-y-4">
               <div>
+                <h3 className="font-semibold mb-2">Team Code</h3>
+                <div className="flex items-center gap-2">
+                  <code className="bg-muted px-3 py-1.5 rounded-md text-lg font-mono font-semibold">
+                    {team.teamCode}
+                  </code>
+                </div>
+              </div>
+
+              <div className="border-t pt-4">
                 <h3 className="font-semibold mb-2">Team Members</h3>
                 <div className="flex flex-wrap gap-2">
                   {team.members.map((member) => (
