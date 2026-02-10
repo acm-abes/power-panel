@@ -17,6 +17,7 @@ export function UserMenu({ userName, userRoles }: UserMenuProps) {
 
   const handleSignOut = async () => {
     await signOut();
+    router.refresh();
     router.replace("/sign-in");
   };
 
