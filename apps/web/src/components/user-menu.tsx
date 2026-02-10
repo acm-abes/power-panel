@@ -5,6 +5,7 @@
 import { signOut } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import type { RoleName } from "@/hooks/use-user-roles";
+import { useRouter } from "next/navigation";
 
 interface UserMenuProps {
   userName: string;
@@ -12,8 +13,11 @@ interface UserMenuProps {
 }
 
 export function UserMenu({ userName, userRoles }: UserMenuProps) {
+  const router = useRouter();
+
   const handleSignOut = async () => {
     await signOut();
+    router.replace("/sign-in");
   };
 
   return (
