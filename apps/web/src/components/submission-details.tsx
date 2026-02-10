@@ -44,6 +44,8 @@ interface SubmissionDetailsProps {
     isLocked: boolean;
     submittedAt: Date;
     updatedAt: Date;
+    pptPath: string;
+    pptSize: number;
   };
   problemStatements: ProblemStatement[];
 }
@@ -196,7 +198,7 @@ export function SubmissionDetails({
                     disabled={isDeleting}
                     className="w-full sm:w-auto"
                   >
-                    <Trash2 className="mr-2 h-4 w-4" />
+                    <Trash2 className="h-4 w-4" />
                     Delete Submission
                   </Button>
                 </AlertDialogTrigger>
