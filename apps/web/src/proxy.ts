@@ -2,10 +2,9 @@
 /** @format */
 
 import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
+import { NextRequest } from "next/server";
 import { auth } from "@/lib/auth";
 import { RoleName } from "@power/db";
-import { notFound } from "next/navigation";
 
 const ROUTES: Record<string, RoleName[]> = {
   "/dashboard": [
@@ -61,7 +60,7 @@ export async function proxy(request: NextRequest) {
     requiredRoles &&
     !requiredRoles.some((role) => userRoles.includes(role))
   ) {
-    return notFound();
+    return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 
   return NextResponse.next();
