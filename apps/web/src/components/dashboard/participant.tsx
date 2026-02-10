@@ -149,13 +149,13 @@ export async function DashboardParticipant({
                 )}
               </div>
               <div className="flex gap-2">
-                <Link href={`/teams/${team.id}/submission`}>
+                <Link href={`/teams/my-team`}>
                   <Button variant="outline" size="sm">
                     View Submission
                   </Button>
                 </Link>
                 {!team.submission.isLocked && (
-                  <Link href={`/teams/${team.id}/submission/edit`}>
+                  <Link href={`/teams/my-team`}>
                     <Button size="sm">Update Submission</Button>
                   </Link>
                 )}

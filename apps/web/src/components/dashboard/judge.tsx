@@ -159,7 +159,7 @@ export async function DashboardJudge({ userId }: DashboardJudgeProps) {
                           </Button>
                         </Link>
                       )}
-                      <Link href={`/teams/${assignment.teamId}`}>
+                      <Link href={`/teams/my-team`}>
                         <Button variant="outline" size="sm">
                           View Team
                         </Button>
