@@ -141,6 +141,22 @@ export default async function AdminSubmissionsPage() {
                                   {formatFileSize(submission.documentSize)}
                                 </span>
                               </div>
+                              <div>
+                                <span className="text-muted-foreground">
+                                  Presentation:
+                                </span>{" "}
+                                <span className="font-medium">
+                                  {submission.pptPath.split("/").pop()}
+                                </span>
+                              </div>
+                              <div>
+                                <span className="text-muted-foreground">
+                                  PPT Size:
+                                </span>{" "}
+                                <span className="font-medium">
+                                  {formatFileSize(submission.pptSize)}
+                                </span>
+                              </div>
                               <div className="flex items-center gap-2">
                                 <Calendar className="h-3 w-3 text-muted-foreground" />
                                 <span className="text-muted-foreground">

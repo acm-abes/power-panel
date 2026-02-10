@@ -43,30 +43,40 @@ interface SubmissionFormProps {
 export function SubmissionForm({ problemStatements }: SubmissionFormProps) {
   const [psId, setPsId] = useState("");
   const [additionalNotes, setAdditionalNotes] = useState("");
-  const [file, setFile] = useState<File | null>(null);
+  const [documentFile, setDocumentFile] = useState<File | null>(null);
+  const [pptFile, setPptFile] = useState<File | null>(null);
   const router = useRouter();
 
   const submissionMutation = useMutation({
     mutationFn: async ({
       psId,
-      file,
+      documentFile,
+      pptFile,
       additionalNotes,
     }: {
       psId: string;
-      file: File;
+      documentFile: File;
+      pptFile: File;
       additionalNotes?: string;
     }) => {
-      // Upload file to storage service
-      const formData = new FormData();
-      formData.append("file", file);
+      // Upload document file to storage service
+      const documentFormData = new FormData();
+      documentFormData.append("file", documentFile);
+      const documentUploadResult = await uploadSubmissionFile(documentFormData);
 
-      const uploadResult = await uploadSubmissionFile(formData);
+      // Upload PPT file if provided
+
+      const pptFormData = new FormData();
+      pptFormData.append("file", pptFile);
+      const pptUploadResult = await uploadSubmissionFile(pptFormData);
 
       // Create submission with uploaded file details
       return createOrUpdateSubmission({
         psId,
-        documentPath: uploadResult.path,
-        documentSize: uploadResult.size,
+        documentPath: documentUploadResult.path,
+        documentSize: documentUploadResult.size,
+        pptPath: pptUploadResult.path,
+        pptSize: pptUploadResult.size,
         additionalNotes: additionalNotes || undefined,
       });
     },
@@ -76,10 +86,15 @@ export function SubmissionForm({ problemStatements }: SubmissionFormProps) {
       // Reset form
       setPsId("");
       setAdditionalNotes("");
-      setFile(null);
-      // Reset file input
-      const fileInput = document.getElementById("document") as HTMLInputElement;
-      if (fileInput) fileInput.value = "";
+      setDocumentFile(null);
+      setPptFile(null);
+      // Reset file inputs
+      const documentInput = document.getElementById(
+        "document",
+      ) as HTMLInputElement;
+      if (documentInput) documentInput.value = "";
+      const pptInput = document.getElementById("ppt") as HTMLInputElement;
+      if (pptInput) pptInput.value = "";
     },
     onError: (error: Error) => {
       toast.error(error.message || "Failed to submit");
@@ -106,12 +121,36 @@ export function SubmissionForm({ problemStatements }: SubmissionFormProps) {
       return;
     }
 
-    if (!file) {
+    if (!documentFile) {
       toast.error("Document file is required");
       return;
     }
 
-    submissionMutation.mutate({ psId, file, additionalNotes });
+    if (!pptFile) {
+      toast.error("Presentation file is required");
+      return;
+    }
+
+    const documentExt = documentFile.name.split(".").pop()?.toLowerCase();
+
+    if (!["pdf", "doc", "docx"].includes(documentExt || "")) {
+      toast.error("Document must be PDF, DOC, or DOCX format");
+      return;
+    }
+
+    const pptExt = pptFile.name.split(".").pop()?.toLowerCase();
+
+    if (!["pdf", "pptx"].includes(pptExt || "")) {
+      toast.error("PPT must be PDF or PPTX format");
+      return;
+    }
+
+    submissionMutation.mutate({
+      psId,
+      documentFile,
+      pptFile: pptFile,
+      additionalNotes,
+    });
   };
 
   return (
@@ -183,13 +222,13 @@ export function SubmissionForm({ problemStatements }: SubmissionFormProps) {
             <Input
               id="document"
               type="file"
-              onChange={(e) => setFile(e.target.files?.[0] || null)}
+              onChange={(e) => setDocumentFile(e.target.files?.[0] || null)}
               disabled={submissionMutation.isPending}
-              accept=".pdf,.doc,.docx,.ppt,.pptx"
+              accept=".pdf,.doc,.docx"
             />
             <p className="text-xs text-muted-foreground">
               <span>
-                The doc defining your solution. It must follow the format
+                The document defining your solution. It must follow the format
                 specified{" "}
                 <a
                   href=""
@@ -201,7 +240,25 @@ export function SubmissionForm({ problemStatements }: SubmissionFormProps) {
                 </a>
                 <br />
               </span>
-              Accepted formats: PDF, DOC, DOCX, PPT, PPTX
+              Accepted formats: PDF, DOC, DOCX
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="ppt">
+              Presentation <span className="text-destructive">*</span>
+            </Label>
+            <Input
+              id="ppt"
+              type="file"
+              onChange={(e) => setPptFile(e.target.files?.[0] || null)}
+              disabled={submissionMutation.isPending}
+              accept=".pdf,.pptx"
+            />
+            <p className="text-xs text-muted-foreground">
+              Upload your presentation file.
+              <br />
+              Accepted formats: PDF, PPTX
             </p>
           </div>
 

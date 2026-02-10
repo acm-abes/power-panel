@@ -12,6 +12,8 @@ export type SubmissionData = {
   psId: string;
   documentPath: string;
   documentSize: number;
+  pptPath: string;
+  pptSize: number;
   additionalNotes?: string;
 };
 
@@ -54,9 +56,10 @@ export async function createOrUpdateSubmission(data: SubmissionData) {
 
   // If updating and the document path changed, enqueue deletion of old file
   const oldDocumentPath = team.submission?.documentPath;
-  const isUpdate = !!team.submission;
+  const oldPptPath = team.submission?.pptPath;
   const documentChanged =
     oldDocumentPath && oldDocumentPath !== data.documentPath;
+  const pptChanged = oldPptPath && oldPptPath !== data.pptPath;
 
   // Create or update submission
   const submission = await prisma.submission.upsert({
@@ -68,22 +71,33 @@ export async function createOrUpdateSubmission(data: SubmissionData) {
       psId: data.psId,
       documentPath: data.documentPath,
       documentSize: data.documentSize,
+      pptPath: data.pptPath,
+      pptSize: data.pptSize,
       additionalNotes: data.additionalNotes || null,
     },
     update: {
       psId: data.psId,
       documentPath: data.documentPath,
       documentSize: data.documentSize,
+      pptPath: data.pptPath,
+      pptSize: data.pptSize,
       additionalNotes: data.additionalNotes || null,
       updatedAt: new Date(),
     },
   });
 
-  // After successful database update, enqueue deletion of old file if document changed
+  // After successful database update, enqueue deletion of old files if they changed
   if (documentChanged && oldDocumentPath) {
     await enqueueDelete({
       path: oldDocumentPath,
       reason: "Submission updated with new document",
+    });
+  }
+
+  if (pptChanged && oldPptPath) {
+    await enqueueDelete({
+      path: oldPptPath,
+      reason: "Submission updated with new PPT",
     });
   }
 
@@ -134,8 +148,9 @@ export async function deleteSubmission() {
     throw new Error("Submission is locked and cannot be deleted");
   }
 
-  // Store the document path before deletion
+  // Store the file paths before deletion
   const documentPath = team.submission.documentPath;
+  const pptPath = team.submission.pptPath;
 
   // Delete from database
   await prisma.submission.delete({
@@ -144,9 +159,15 @@ export async function deleteSubmission() {
     },
   });
 
-  // Enqueue job to delete file from S3
+  // Enqueue job to delete document file from S3
   await enqueueDelete({
     path: documentPath,
+    reason: "Submission deleted by team",
+  });
+
+  // Enqueue job to delete PPT file from S3
+  await enqueueDelete({
+    path: pptPath,
     reason: "Submission deleted by team",
   });
 

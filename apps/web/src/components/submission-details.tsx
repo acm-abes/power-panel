@@ -145,6 +145,19 @@ export function SubmissionDetails({
               </div>
             </div>
 
+            <div className="flex items-start gap-3">
+              <FileText className="h-5 w-5 text-muted-foreground mt-0.5" />
+              <div className="flex-1">
+                <p className="text-sm font-medium mb-1">Presentation</p>
+                <p className="text-sm text-muted-foreground">
+                  {submission.pptPath.split("/").pop()}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {formatFileSize(submission.pptSize)}
+                </p>
+              </div>
+            </div>
+
             {submission.additionalNotes && (
               <div className="flex items-start gap-3">
                 <FileText className="h-5 w-5 text-muted-foreground mt-0.5" />

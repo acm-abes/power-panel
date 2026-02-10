@@ -110,6 +110,8 @@ model Submission {
   psId             String
   documentPath     String
   documentSize     Int
+  pptPath          String
+  pptSize          Int
   additionalNotes  String?
   isLocked         Boolean          @default(false)
   submittedAt      DateTime         @default(now())
