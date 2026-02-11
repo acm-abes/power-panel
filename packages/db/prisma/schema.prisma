@@ -23,6 +23,8 @@ model User {
   sessions         Session[]
   teamMemberships  TeamMember[]
   userRoles        UserRole[]
+  panelJudges      PanelJudge[]
+  trackPreferences Json?
 
   @@map("user")
 }
@@ -119,9 +121,13 @@ model Submission {
   updatedAt        DateTime         @updatedAt
   problemStatement ProblemStatement @relation(fields: [psId], references: [psId])
   team             Team             @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  panelId          String?
+  panel            Panel?           @relation(fields: [panelId], references: [id])
+  assignmentMeta   Json?
 
   @@index([teamId])
   @@index([psId])
+  @@index([panelId])
   @@map("submission")
 }
 
@@ -337,7 +343,36 @@ enum RoleName {
   PARTICIPANT
 }
 
+
+model Panel {
+  id          String       @id @default(cuid())
+  name        String
+  capacity    Int          @default(5)
+  isLocked    Boolean      @default(false)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  judges      PanelJudge[]
+  submissions Submission[]
+
+  @@map("panel")
+}
+
+model PanelJudge {
+  id        String   @id @default(cuid())
+  panelId   String
+  userId    String
+  createdAt DateTime @default(now())
+  panel     Panel    @relation(fields: [panelId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([panelId, userId])
+  @@index([panelId])
+  @@index([userId])
+  @@map("panel_judge")
+}
+
 enum EmailJobStatus {
   SENT
   FAILED
 }
+
