@@ -234,9 +234,12 @@ export async function previewAssignmentsAction() {
   try {
     await checkAdmin();
 
-    // Fetch Submissions (only those needing assignment? or all?)
-    // Let's fetch all active submissions
+    // Fetch Submissions (only those needing assignment)
+    // Only fetch submissions that haven't been assigned to a panel yet
     const submissions = await prisma.submission.findMany({
+      where: {
+        panelId: null, // Only unassigned submissions
+      },
       select: {
         id: true,
         psId: true,
