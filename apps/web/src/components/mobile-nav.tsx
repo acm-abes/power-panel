@@ -38,7 +38,6 @@ export function MobileNav({
   const handleSignOut = async () => {
     await signOut();
     router.refresh();
-    router.replace("/sign-in");
   };
 
   const closeSheet = () => setOpen(false);
