@@ -1,0 +1,13 @@
+{
+  "name": "@power/allocation",
+  "version": "0.0.1",
+  "main": "index.ts",
+  "type": "module",
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "typescript": "^5.3.3"
+  },
+  "dependencies": {
+    "@power/db": "workspace:*"
+  }
+}
