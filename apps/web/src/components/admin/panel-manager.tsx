@@ -20,7 +20,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Check, X, Wand2, Users } from "lucide-react";
+import { Loader2, Check, X, Wand2, Users, Trash2, Lock } from "lucide-react";
 import { toast } from "sonner";
 import {
   previewPanelsAction,
@@ -28,6 +28,7 @@ import {
   previewAssignmentsAction,
   confirmAssignmentsAction,
 } from "@/server/actions/admin-allocation";
+import { deletePanel } from "@/server/actions/panels";
 import { useRouter } from "next/navigation";
 
 interface PanelManagerProps {
@@ -112,6 +113,31 @@ export function PanelManager({ initialPanels }: PanelManagerProps) {
     }
   }
 
+  async function handleDeletePanel(id: string) {
+    // In a real app, use a proper dialog. generic confirm is okay for now as requested for speed.
+    if (
+      !confirm(
+        "Are you sure you want to delete this panel? This action cannot be undone.",
+      )
+    )
+      return;
+
+    setIsLoading(true);
+    const result = await deletePanel(id);
+    setIsLoading(false);
+
+    if (result.success) {
+      toast.success("Panel deleted");
+      router.refresh();
+    } else {
+      toast.error(
+        typeof result.error === "string"
+          ? result.error
+          : "Failed to delete panel",
+      );
+    }
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex gap-4">
@@ -168,22 +194,24 @@ export function PanelManager({ initialPanels }: PanelManagerProps) {
             <Accordion type="single" collapsible className="w-full">
               {previewPanels.map((panel, idx) => (
                 <AccordionItem value={`preview-${idx}`} key={idx}>
-                  <AccordionTrigger>
-                    <div className="flex items-center gap-4 text-left">
-                      <span className="font-semibold">Panel {panel.id}</span>
-                      <div className="flex gap-2">
+                  <AccordionTrigger className="hover:no-underline px-2">
+                    <div className="flex items-center gap-4 text-left w-full">
+                      <span className="font-semibold text-lg">
+                        Panel {panel.id}
+                      </span>
+                      <div className="flex gap-2 ml-auto mr-4">
                         {panel.trackScore.AI > 0 && (
-                          <Badge variant="outline">
+                          <Badge variant="outline" className="text-xs">
                             AI: {panel.trackScore.AI.toFixed(1)}
                           </Badge>
                         )}
                         {panel.trackScore.Web3 > 0 && (
-                          <Badge variant="outline">
+                          <Badge variant="outline" className="text-xs">
                             Web3: {panel.trackScore.Web3.toFixed(1)}
                           </Badge>
                         )}
                         {panel.trackScore.Defense > 0 && (
-                          <Badge variant="outline">
+                          <Badge variant="outline" className="text-xs">
                             Def: {panel.trackScore.Defense.toFixed(1)}
                           </Badge>
                         )}
@@ -194,18 +222,18 @@ export function PanelManager({ initialPanels }: PanelManagerProps) {
                     </div>
                   </AccordionTrigger>
                   <AccordionContent>
-                    <div className="space-y-2 pl-4 border-l-2">
+                    <div className="space-y-2 p-4 bg-muted/30 rounded-md">
                       {panel.judges.map((j) => (
                         <div
                           key={j.id}
-                          className="flex justify-between text-sm"
+                          className="flex justify-between items-center text-sm p-2 bg-background rounded border"
                         >
-                          <span>{j.name}</span>
-                          <span className="text-muted-foreground text-xs">
-                            AI: {j.trackPreferences.AI}, W3:{" "}
-                            {j.trackPreferences.Web3}, Def:{" "}
-                            {j.trackPreferences.Defense}
-                          </span>
+                          <span className="font-medium">{j.name}</span>
+                          <div className="text-muted-foreground text-xs flex gap-2">
+                            <span>AI: {j.trackPreferences.AI}</span>
+                            <span>Web3: {j.trackPreferences.Web3}</span>
+                            <span>Defense: {j.trackPreferences.Defense}</span>
+                          </div>
                         </div>
                       ))}
                     </div>
@@ -243,58 +271,130 @@ export function PanelManager({ initialPanels }: PanelManagerProps) {
 
       {/* Existing Database Panels (Read-Only List) */}
       {viewMode === "list" && (
-        <div className="grid gap-4">
-          <h2 className="text-xl font-semibold">Current Panels</h2>
-          {initialPanels.length === 0 ? (
-            <p className="text-muted-foreground">
-              No panels found. Generate some above.
-            </p>
-          ) : (
-            <Accordion type="single" collapsible className="w-full">
-              {initialPanels.map((panel) => (
-                <AccordionItem value={panel.id} key={panel.id}>
-                  <AccordionTrigger>
-                    <div className="flex items-center gap-4 text-left">
-                      <span className="font-semibold">{panel.name}</span>
-                      <Badge
-                        variant={panel.isLocked ? "destructive" : "default"}
-                      >
-                        {panel.isLocked ? "Locked" : "Active"}
-                      </Badge>
-                      <Badge variant="secondary">{panel.capacity} Cap</Badge>
-                      <span className="text-xs text-muted-foreground">
-                        {panel._count.judges} Judges •{" "}
-                        {panel._count.submissions} Submissions
-                      </span>
-                    </div>
-                  </AccordionTrigger>
-                  <AccordionContent>
-                    <div className="space-y-4">
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <h4 className="font-medium mb-2">Judges</h4>
-                          <ul className="list-disc pl-5 text-sm space-y-1">
-                            {panel.judges.map((pj) => (
-                              <li key={pj.user.id}>
-                                {pj.user.name}
-                                <span className="text-muted-foreground ml-2 text-xs">
-                                  (AI:{pj.user.trackPreferences?.AI ?? 0}, W3:
-                                  {pj.user.trackPreferences?.Web3 ?? 0}, D:
-                                  {pj.user.trackPreferences?.Defense ?? 0})
-                                </span>
-                              </li>
-                            ))}
-                          </ul>
+        <Card>
+          <CardHeader>
+            <CardTitle>Current Panels</CardTitle>
+            <CardDescription>
+              Manage existing panels and their judges.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {initialPanels.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                <p>
+                  No panels found. Click "Auto-Generate Panels" to get started.
+                </p>
+              </div>
+            ) : (
+              <Accordion type="single" collapsible className="w-full">
+                {initialPanels.map((panel) => (
+                  <AccordionItem value={panel.id} key={panel.id}>
+                    <AccordionTrigger className="hover:no-underline px-2">
+                      <div className="flex items-center gap-4 text-left w-full">
+                        {panel.isLocked && (
+                          <Lock className="h-4 w-4 text-muted-foreground" />
+                        )}
+                        <span className="font-semibold text-lg">
+                          {panel.name}
+                        </span>
+
+                        <div className="ml-auto mr-4 flex items-center gap-2">
+                          <Badge variant="outline" className="font-mono">
+                            Cap: {panel.capacity}
+                          </Badge>
+                          <Badge variant="secondary">
+                            {panel._count.judges} Judges
+                          </Badge>
                         </div>
-                        {/* Future: List submissions here too */}
                       </div>
-                    </div>
-                  </AccordionContent>
-                </AccordionItem>
-              ))}
-            </Accordion>
-          )}
-        </div>
+                    </AccordionTrigger>
+                    <AccordionContent>
+                      <div className="p-4 space-y-6 bg-muted/10 rounded-b-md">
+                        <div className="grid md:grid-cols-2 gap-6">
+                          <div>
+                            <h4 className="text-sm font-semibold mb-3 flex items-center gap-2">
+                              <Users className="h-4 w-4" /> Judges
+                            </h4>
+                            <div className="space-y-2">
+                              {panel.judges.map((pj) => (
+                                <div
+                                  key={pj.user.id}
+                                  className="text-sm p-3 bg-card border rounded flex justify-between items-center shadow-sm"
+                                >
+                                  <span className="font-medium">
+                                    {pj.user.name}
+                                  </span>
+                                  <div className="text-xs text-muted-foreground flex gap-2">
+                                    <span title="AI Score">
+                                      AI:{pj.user.trackPreferences?.AI ?? 0}
+                                    </span>
+                                    <span title="Web3 Score">
+                                      W3:{pj.user.trackPreferences?.Web3 ?? 0}
+                                    </span>
+                                    <span title="Defense Score">
+                                      D:{pj.user.trackPreferences?.Defense ?? 0}
+                                    </span>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                          <div>
+                            <h4 className="text-sm font-semibold mb-3">
+                              Panel Stats
+                            </h4>
+                            <div className="p-3 bg-card border rounded shadow-sm space-y-2 text-sm">
+                              <div className="flex justify-between">
+                                <span className="text-muted-foreground">
+                                  Assigned Submissions
+                                </span>
+                                <span className="font-medium">
+                                  {panel._count.submissions}
+                                </span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-muted-foreground">
+                                  Capacity
+                                </span>
+                                <span className="font-medium">
+                                  {panel.capacity}
+                                </span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-muted-foreground">
+                                  Status
+                                </span>
+                                <Badge
+                                  variant={
+                                    panel.isLocked ? "destructive" : "default"
+                                  }
+                                  className="text-xs"
+                                >
+                                  {panel.isLocked ? "Locked" : "Active"}
+                                </Badge>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="flex justify-end pt-4 border-t">
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => handleDeletePanel(panel.id)}
+                            disabled={isLoading}
+                          >
+                            <Trash2 className="mr-2 h-4 w-4" /> Delete Panel
+                          </Button>
+                        </div>
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                ))}
+              </Accordion>
+            )}
+          </CardContent>
+        </Card>
       )}
     </div>
   );
