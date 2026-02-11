@@ -118,3 +118,197 @@ export async function lockPanel(panelId: string, isLocked: boolean) {
     return { error: "Failed to toggle lock" };
   }
 }
+
+import {
+  createPanels,
+  computePanelTrackScores,
+  assignSubmissions,
+  AllocationJudge,
+  AllocationSubmission,
+  GeneratedPanel,
+} from "@power/allocation";
+
+// --- Panel Generation ---
+
+export async function previewPanelsAction(config: { judgesPerPanel: number }) {
+  try {
+    await checkAdmin();
+
+    // Fetch all judges
+    const judges = await prisma.user.findMany({
+      where: {
+        userRoles: {
+          some: {
+            role: { name: "JUDGE" },
+          },
+        },
+      },
+      select: {
+        id: true,
+        name: true,
+        trackPreferences: true,
+      },
+    });
+
+    // Map to AllocationJudge
+    const allocationJudges: AllocationJudge[] = judges.map((j) => ({
+      id: j.id,
+      name: j.name,
+      trackPreferences: (j.trackPreferences as any) || {
+        AI: 0,
+        Web3: 0,
+        Defense: 0,
+      },
+    }));
+
+    // Run Algorithm
+    const generatedPanels = createPanels(allocationJudges, {
+      judgesPerPanel: config.judgesPerPanel,
+    });
+
+    return { success: true, panels: generatedPanels };
+  } catch (error) {
+    console.error("Preview panels failed:", error);
+    return { error: "Failed to generate preview" };
+  }
+}
+
+export async function confirmPanelsAction(panels: GeneratedPanel[]) {
+  try {
+    await checkAdmin();
+
+    // Transactional save
+    await prisma.$transaction(async (tx) => {
+      for (const p of panels) {
+        // Create Panel
+        const createdPanel = await tx.panel.create({
+          data: {
+            name: p.id, // Auto-generated ID as name initially
+            capacity: 5, // Default capacity, maybe should be configurable?
+            // isLocked: false
+          },
+        });
+
+        // Create PanelJudge relations
+        for (const judge of p.judges) {
+          await tx.panelJudge.create({
+            data: {
+              panelId: createdPanel.id,
+              userId: judge.id,
+            },
+          });
+        }
+      }
+    });
+
+    revalidatePath("/admin/panels");
+    return { success: true };
+  } catch (error) {
+    console.error("Confirm panels failed:", error);
+    return { error: "Failed to save panels" };
+  }
+}
+
+// --- Submission Assignment ---
+
+export async function previewAssignmentsAction() {
+  try {
+    await checkAdmin();
+
+    // Fetch Submissions (only those needing assignment? or all?)
+    // Let's fetch all active submissions
+    const submissions = await prisma.submission.findMany({
+      select: {
+        id: true,
+        psId: true,
+        problemStatement: {
+          select: { track: true },
+        },
+      },
+    });
+
+    // Fetch Panels with Judges and Scores
+    const dbPanels = await prisma.panel.findMany({
+      include: {
+        judges: {
+          include: {
+            user: {
+              select: { id: true, name: true, trackPreferences: true },
+            },
+          },
+        },
+        _count: { select: { submissions: true } },
+      },
+    });
+
+    // Convert to Allocation types
+    const allocSubmissions: AllocationSubmission[] = submissions.map((s) => ({
+      id: s.id,
+      track: s.problemStatement.track as any, // 'AI' | 'Web3' | 'Defense'
+    }));
+
+    const allocPanels: GeneratedPanel[] = dbPanels.map((p) => {
+      const judges: AllocationJudge[] = p.judges.map((pj) => ({
+        id: pj.user.id,
+        name: pj.user.name,
+        trackPreferences: (pj.user.trackPreferences as any) || {
+          AI: 0,
+          Web3: 0,
+          Defense: 0,
+        },
+      }));
+
+      return {
+        id: p.id,
+        judges,
+        trackScore: computePanelTrackScores(judges),
+        capacity: p.capacity,
+        currentLoad: p._count.submissions,
+      };
+    });
+
+    // Run Assignment
+    const assignments = assignSubmissions(allocSubmissions, allocPanels); // submissionId -> panelId
+
+    return {
+      success: true,
+      assignments,
+      stats: {
+        total: allocSubmissions.length,
+        assigned: Object.keys(assignments).length,
+      },
+    };
+  } catch (error) {
+    console.error("Preview assignments failed:", error);
+    return { error: "Failed to generate assignment preview" };
+  }
+}
+
+export async function confirmAssignmentsAction(
+  assignments: Record<string, string>,
+) {
+  try {
+    await checkAdmin();
+
+    // Bulk update
+    // Prisma doesn't support generic bulk update with different values easily without raw query or loop.
+    // Loop is safer for now for reasonable size.
+
+    await prisma.$transaction(async (tx) => {
+      const promises = Object.entries(assignments).map(
+        ([submissionId, panelId]) =>
+          tx.submission.update({
+            where: { id: submissionId },
+            data: { panelId },
+          }),
+      );
+      await Promise.all(promises);
+    });
+
+    revalidatePath("/admin/panels");
+    return { success: true };
+  } catch (error) {
+    console.error("Confirm assignments failed:", error);
+    return { error: "Failed to apply assignments" };
+  }
+}
