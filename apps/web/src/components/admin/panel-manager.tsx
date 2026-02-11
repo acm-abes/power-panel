@@ -42,6 +42,9 @@ export function PanelManager({ initialPanels }: PanelManagerProps) {
   const router = useRouter();
   const [viewMode, setViewMode] = useState<"list" | "preview-panels">("list");
   const [previewPanels, setPreviewPanels] = useState<GeneratedPanel[]>([]);
+  const [panelStrategy, setPanelStrategy] = useState<"fresh" | "unallocated">(
+    "fresh",
+  );
   const [isLoading, setIsLoading] = useState(false);
 
   async function handleGeneratePanels(config: {
@@ -55,6 +58,7 @@ export function PanelManager({ initialPanels }: PanelManagerProps) {
 
     if (result.success && result.panels) {
       setPreviewPanels(result.panels);
+      setPanelStrategy(config.strategy);
       setViewMode("preview-panels");
       toast.success("Panels generated successfully (Preview Mode)");
     } else {
@@ -64,7 +68,7 @@ export function PanelManager({ initialPanels }: PanelManagerProps) {
 
   async function handleConfirmPanels() {
     setIsLoading(true);
-    const result = await confirmPanelsAction(previewPanels);
+    const result = await confirmPanelsAction(previewPanels, panelStrategy);
     setIsLoading(false);
 
     if (result.success) {

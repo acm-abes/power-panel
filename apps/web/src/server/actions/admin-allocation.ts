@@ -192,12 +192,23 @@ export async function previewPanelsAction(config: {
   }
 }
 
-export async function confirmPanelsAction(panels: GeneratedPanel[]) {
+export async function confirmPanelsAction(
+  panels: GeneratedPanel[],
+  strategy: "fresh" | "unallocated",
+) {
   try {
     await checkAdmin();
 
     // Transactional save
     await prisma.$transaction(async (tx) => {
+      // If using "fresh" strategy, delete all existing panels first
+      // This ensures no judge is part of multiple panels
+      if (strategy === "fresh") {
+        // Delete in order: panel judges, then panels
+        await tx.panelJudge.deleteMany({});
+        await tx.panel.deleteMany({});
+      }
+
       for (const p of panels) {
         // Create Panel
         const createdPanel = await tx.panel.create({
