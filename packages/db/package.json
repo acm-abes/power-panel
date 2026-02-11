@@ -9,7 +9,8 @@
   "scripts": {
     "generate": "bunx prisma generate",
     "ingest": "bun run scripts/seed-temp-data.ts",
-    "seed:ps": "bun run scripts/seed-problem-statements.ts"
+    "seed:ps": "bun run scripts/seed-problem-statements.ts",
+    "seed": "bun run scripts/seed-database.ts"
   },
   "devDependencies": {
     "@types/node": "^25.1.0"

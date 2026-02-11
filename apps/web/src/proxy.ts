@@ -7,12 +7,7 @@ import { auth } from "@/lib/auth";
 import { RoleName } from "@power/db";
 
 const ROUTES: Record<string, RoleName[]> = {
-  "/dashboard": [
-    RoleName.ADMIN,
-    RoleName.JUDGE,
-    RoleName.MENTOR,
-    RoleName.PARTICIPANT,
-  ],
+  "/dashboard": [],
   "/admin": [RoleName.ADMIN],
   "/judge": [RoleName.JUDGE],
   "/mentor": [RoleName.MENTOR],
@@ -55,6 +50,10 @@ export async function proxy(request: NextRequest) {
   const requiredRoles = Object.entries(ROUTES).find(([route]) =>
     pathname.startsWith(route),
   )?.[1];
+
+  if (requiredRoles?.length === 0) {
+    return NextResponse.next();
+  }
 
   if (
     requiredRoles &&
