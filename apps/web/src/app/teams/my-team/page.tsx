@@ -92,6 +92,10 @@ export default async function MyTeamPage() {
                       const signedInMember = team.members.find(
                         (m) => m.user.email === member.userEmail,
                       );
+                      const analyticMember = analyticsMembers.find(
+                        (m) => m.userEmail === member.userEmail,
+                      );
+
                       const isSignedIn = !!signedInMember;
 
                       return (
@@ -111,12 +115,12 @@ export default async function MyTeamPage() {
                               <Badge
                                 className="text-[10px] h-5 px-1.5"
                                 variant={
-                                  signedInMember.role === "LEAD"
+                                  analyticMember?.position === "leader"
                                     ? "default"
                                     : "secondary"
                                 }
                               >
-                                {signedInMember.role}
+                                {analyticMember?.position.toUpperCase()}
                               </Badge>
                             ) : (
                               <Badge
