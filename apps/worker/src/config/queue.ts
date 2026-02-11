@@ -1,7 +1,7 @@
 /** @format */
 
 // Concurrency of 10 allows smooth processing while rate limiter ensures we stay within 14/sec
-export const CONCURRENCY = 10;
+export const CONCURRENCY = 3;
 export const QUEUE_NAME = "master-queue";
 
 // Rate limit: 14 emails per second max

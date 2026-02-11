@@ -166,7 +166,7 @@ export async function DashboardParticipant({
               <p className="text-muted-foreground">
                 You haven&apos;t submitted your project yet.
               </p>
-              <Link href="/teams/submission">
+              <Link href="/teams/my-team">
                 <Button>Create your Submission</Button>
               </Link>
             </div>
