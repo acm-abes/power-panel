@@ -20,7 +20,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Check, X, Wand2, Users, Trash2, Lock } from "lucide-react";
+import { Loader2, Check, X, Users, Trash2, Lock } from "lucide-react";
 import { toast } from "sonner";
 import {
   previewPanelsAction,
@@ -30,6 +30,7 @@ import {
 } from "@/server/actions/admin-allocation";
 import { deletePanel } from "@/server/actions/panels";
 import { useRouter } from "next/navigation";
+import { PanelGenerationDialog } from "@/components/admin/panel-generation-dialog";
 
 interface PanelManagerProps {
   initialPanels: (Panel & {
@@ -53,9 +54,13 @@ export function PanelManager({ initialPanels }: PanelManagerProps) {
   } | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  async function handleGeneratePanels() {
+  async function handleGeneratePanels(config: {
+    strategy: "fresh" | "unallocated";
+    judgesPerPanel: number;
+    capacity: number;
+  }) {
     setIsLoading(true);
-    const result = await previewPanelsAction({ judgesPerPanel: 3 }); // Default config
+    const result = await previewPanelsAction(config);
     setIsLoading(false);
 
     if (result.success && result.panels) {
@@ -143,17 +148,13 @@ export function PanelManager({ initialPanels }: PanelManagerProps) {
       <div className="flex gap-4">
         {viewMode === "list" && (
           <>
-            <Button onClick={handleGeneratePanels} disabled={isLoading}>
-              {isLoading ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              ) : (
-                <Wand2 className="mr-2 h-4 w-4" />
-              )}
-              Auto-Generate Panels
-            </Button>
+            <PanelGenerationDialog
+              isLoading={isLoading}
+              onGenerate={handleGeneratePanels}
+            />
             <Button
               onClick={handleGenerateAssignments}
-              disabled={isLoading}
+              disabled={isLoading || initialPanels.length === 0}
               variant="outline"
             >
               {isLoading ? (

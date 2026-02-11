@@ -130,12 +130,16 @@ import {
 
 // --- Panel Generation ---
 
-export async function previewPanelsAction(config: { judgesPerPanel: number }) {
+export async function previewPanelsAction(config: {
+  judgesPerPanel: number;
+  strategy: "fresh" | "unallocated";
+  capacity: number;
+}) {
   try {
     await checkAdmin();
 
     // Fetch all judges
-    const judges = await prisma.user.findMany({
+    const allJudges = await prisma.user.findMany({
       where: {
         userRoles: {
           some: {
@@ -147,11 +151,20 @@ export async function previewPanelsAction(config: { judgesPerPanel: number }) {
         id: true,
         name: true,
         trackPreferences: true,
+        panelJudges: {
+          select: { panelId: true },
+        },
       },
     });
 
+    // Filter based on strategy
+    let judgesToAllocate = allJudges;
+    if (config.strategy === "unallocated") {
+      judgesToAllocate = allJudges.filter((j) => j.panelJudges.length === 0);
+    }
+
     // Map to AllocationJudge
-    const allocationJudges: AllocationJudge[] = judges.map((j) => ({
+    const allocationJudges: AllocationJudge[] = judgesToAllocate.map((j) => ({
       id: j.id,
       name: j.name,
       trackPreferences: (j.trackPreferences as any) || {
@@ -166,7 +179,13 @@ export async function previewPanelsAction(config: { judgesPerPanel: number }) {
       judgesPerPanel: config.judgesPerPanel,
     });
 
-    return { success: true, panels: generatedPanels };
+    // Apply capacity to generated panels
+    const panelsWithCapacity = generatedPanels.map((p) => ({
+      ...p,
+      capacity: config.capacity,
+    }));
+
+    return { success: true, panels: panelsWithCapacity };
   } catch (error) {
     console.error("Preview panels failed:", error);
     return { error: "Failed to generate preview" };
