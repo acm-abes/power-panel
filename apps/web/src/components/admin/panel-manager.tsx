@@ -25,11 +25,10 @@ import { toast } from "sonner";
 import {
   previewPanelsAction,
   confirmPanelsAction,
-  previewAssignmentsAction,
-  confirmAssignmentsAction,
 } from "@/server/actions/admin-allocation";
 import { deletePanel } from "@/server/actions/panels";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { PanelGenerationDialog } from "@/components/admin/panel-generation-dialog";
 
 interface PanelManagerProps {
@@ -41,17 +40,8 @@ interface PanelManagerProps {
 
 export function PanelManager({ initialPanels }: PanelManagerProps) {
   const router = useRouter();
-  const [viewMode, setViewMode] = useState<
-    "list" | "preview-panels" | "preview-assignments"
-  >("list");
+  const [viewMode, setViewMode] = useState<"list" | "preview-panels">("list");
   const [previewPanels, setPreviewPanels] = useState<GeneratedPanel[]>([]);
-  const [previewAssignments, setPreviewAssignments] = useState<
-    Record<string, string>
-  >({});
-  const [assignmentStats, setAssignmentStats] = useState<{
-    total: number;
-    assigned: number;
-  } | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   async function handleGeneratePanels(config: {
@@ -84,37 +74,6 @@ export function PanelManager({ initialPanels }: PanelManagerProps) {
       router.refresh();
     } else {
       toast.error(result.error || "Failed to save panels");
-    }
-  }
-
-  async function handleGenerateAssignments() {
-    setIsLoading(true);
-    const result = await previewAssignmentsAction();
-    setIsLoading(false);
-
-    if (result.success && result.assignments && result.stats) {
-      setPreviewAssignments(result.assignments);
-      setAssignmentStats(result.stats);
-      setViewMode("preview-assignments");
-      toast.success("Assignments calculated (Preview Mode)");
-    } else {
-      toast.error(result.error || "Failed to calculate assignments");
-    }
-  }
-
-  async function handleConfirmAssignments() {
-    setIsLoading(true);
-    const result = await confirmAssignmentsAction(previewAssignments);
-    setIsLoading(false);
-
-    if (result.success) {
-      toast.success("Submissions assigned to panels");
-      setViewMode("list");
-      setPreviewAssignments({});
-      setAssignmentStats(null);
-      router.refresh();
-    } else {
-      toast.error(result.error || "Failed to save assignments");
     }
   }
 
@@ -152,18 +111,12 @@ export function PanelManager({ initialPanels }: PanelManagerProps) {
               isLoading={isLoading}
               onGenerate={handleGeneratePanels}
             />
-            <Button
-              onClick={handleGenerateAssignments}
-              disabled={isLoading || initialPanels.length === 0}
-              variant="outline"
-            >
-              {isLoading ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              ) : (
+            <Link href="/admin/panels/assignments">
+              <Button variant="outline" disabled={initialPanels.length === 0}>
                 <Users className="mr-2 h-4 w-4" />
-              )}
-              Assign Teams
-            </Button>
+                Manage Assignments
+              </Button>
+            </Link>
           </>
         )}
       </div>
@@ -243,30 +196,6 @@ export function PanelManager({ initialPanels }: PanelManagerProps) {
               ))}
             </Accordion>
           </CardContent>
-        </Card>
-      )}
-
-      {viewMode === "preview-assignments" && (
-        <Card className="border-primary">
-          <CardHeader className="bg-primary/5">
-            <CardTitle className="text-primary">Assignment Preview</CardTitle>
-            <CardDescription>
-              Ready to assign {assignmentStats?.assigned} /{" "}
-              {assignmentStats?.total} submissions to panels.
-            </CardDescription>
-            <div className="flex gap-2 pt-2">
-              <Button onClick={handleConfirmAssignments} disabled={isLoading}>
-                <Check className="mr-2 h-4 w-4" /> Confirm Assignments
-              </Button>
-              <Button
-                variant="ghost"
-                onClick={() => setViewMode("list")}
-                disabled={isLoading}
-              >
-                <X className="mr-2 h-4 w-4" /> Discard
-              </Button>
-            </div>
-          </CardHeader>
         </Card>
       )}
 

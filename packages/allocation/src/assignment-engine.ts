@@ -29,6 +29,14 @@ export function assignSubmissions(
   // submissionId -> panelId
   const assignments: Record<string, string> = {};
 
+  console.log(
+    "🚀 DEBUG assignSubmissions: Starting with",
+    submissions.length,
+    "submissions and",
+    panels.length,
+    "panels",
+  );
+
   // Sort submissions by ID for determinism
   const sortedSubmissions = [...submissions].sort((a, b) =>
     a.id.localeCompare(b.id),
@@ -39,6 +47,16 @@ export function assignSubmissions(
     if (p.currentLoad === undefined) p.currentLoad = 0;
   });
 
+  console.log(
+    "🚀 DEBUG: Panel states:",
+    panels.map((p) => ({
+      id: p.id,
+      capacity: p.capacity,
+      currentLoad: p.currentLoad,
+      trackScore: p.trackScore,
+    })),
+  );
+
   for (const submission of sortedSubmissions) {
     let bestPanelId: string | null = null;
     let highestScore = -Infinity;
@@ -46,6 +64,10 @@ export function assignSubmissions(
     // Filter valid panels (capacity check)
     const validPanels = panels.filter(
       (p) => (p.currentLoad || 0) < (p.capacity || Infinity),
+    );
+
+    console.log(
+      `🚀 DEBUG: For submission ${submission.id} (track: ${submission.track}), valid panels: ${validPanels.length}`,
     );
 
     if (validPanels.length === 0) {
@@ -59,6 +81,10 @@ export function assignSubmissions(
       const compatibility = calculateCompatibility(submission, panel);
       const loadPenalty = calculateLoadPenalty(panel);
       const finalScore = compatibility - loadPenalty;
+
+      console.log(
+        `  Panel ${panel.id}: compatibility=${compatibility}, loadPenalty=${loadPenalty}, finalScore=${finalScore}`,
+      );
 
       // Break ties deterministically
       if (finalScore > highestScore) {
@@ -76,8 +102,16 @@ export function assignSubmissions(
       assignments[submission.id] = bestPanelId;
       const panel = panels.find((p) => p.id === bestPanelId)!;
       panel.currentLoad = (panel.currentLoad || 0) + 1;
+      console.log(
+        `✅ Assigned submission ${submission.id} to panel ${bestPanelId}`,
+      );
     }
   }
+
+  console.log(
+    "🚀 DEBUG: Total assignments made:",
+    Object.keys(assignments).length,
+  );
 
   return assignments;
 }

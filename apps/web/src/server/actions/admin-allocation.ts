@@ -230,6 +230,23 @@ export async function confirmPanelsAction(panels: GeneratedPanel[]) {
 
 // --- Submission Assignment ---
 
+// Helper function to normalize track values from database to TypeScript type
+function normalizeTrack(dbTrack: string): "AI" | "Web3" | "Defense" {
+  const normalized = dbTrack.toLowerCase();
+  switch (normalized) {
+    case "ai":
+      return "AI";
+    case "web3":
+      return "Web3";
+    case "defence":
+    case "defense":
+      return "Defense";
+    default:
+      console.warn(`Unknown track value: ${dbTrack}, defaulting to AI`);
+      return "AI";
+  }
+}
+
 export async function previewAssignmentsAction() {
   try {
     await checkAdmin();
@@ -243,8 +260,18 @@ export async function previewAssignmentsAction() {
       select: {
         id: true,
         psId: true,
+        team: {
+          select: {
+            id: true,
+            name: true,
+            teamCode: true,
+          },
+        },
         problemStatement: {
-          select: { track: true },
+          select: {
+            track: true,
+            title: true,
+          },
         },
       },
     });
@@ -263,10 +290,10 @@ export async function previewAssignmentsAction() {
       },
     });
 
-    // Convert to Allocation types
+    // Convert to Allocation types with normalized track values
     const allocSubmissions: AllocationSubmission[] = submissions.map((s) => ({
       id: s.id,
-      track: s.problemStatement.track as any, // 'AI' | 'Web3' | 'Defense'
+      track: normalizeTrack(s.problemStatement.track),
     }));
 
     const allocPanels: GeneratedPanel[] = dbPanels.map((p) => {
@@ -292,9 +319,45 @@ export async function previewAssignmentsAction() {
     // Run Assignment
     const assignments = assignSubmissions(allocSubmissions, allocPanels); // submissionId -> panelId
 
+    // Build detailed assignment info for UI
+    const assignmentDetails = Object.entries(assignments).map(
+      ([submissionId, panelId]) => {
+        const submission = submissions.find((s) => s.id === submissionId)!;
+        const panel = dbPanels.find((p) => p.id === panelId)!;
+
+        return {
+          submissionId,
+          panelId,
+          teamName: submission.team.name,
+          teamCode: submission.team.teamCode,
+          psTitle: submission.problemStatement.title,
+          track: normalizeTrack(submission.problemStatement.track),
+          panelName: panel.name,
+        };
+      },
+    );
+
+    // Group assignments by panel for easier display
+    const assignmentsByPanel = dbPanels.map((panel) => {
+      const panelAssignments = assignmentDetails.filter(
+        (a) => a.panelId === panel.id,
+      );
+
+      return {
+        panelId: panel.id,
+        panelName: panel.name,
+        capacity: panel.capacity,
+        currentLoad: panel._count.submissions,
+        newAssignments: panelAssignments.length,
+        assignments: panelAssignments,
+      };
+    });
+
     return {
       success: true,
       assignments,
+      assignmentDetails,
+      assignmentsByPanel,
       stats: {
         total: allocSubmissions.length,
         assigned: Object.keys(assignments).length,
