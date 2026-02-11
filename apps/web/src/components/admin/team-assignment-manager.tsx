@@ -25,6 +25,7 @@ import {
   confirmAssignmentsAction,
 } from "@/server/actions/admin-allocation";
 import { useRouter } from "next/navigation";
+import { AssignmentConfigDialog } from "@/components/admin/assignment-config-dialog";
 
 interface Panel {
   id: string;
@@ -69,11 +70,16 @@ export function TeamAssignmentManager({
     total: number;
     assigned: number;
   } | null>(null);
+  const [assignmentStrategy, setAssignmentStrategy] = useState<
+    "better-panel-first" | "equal-distribution"
+  >("better-panel-first");
   const [isLoading, setIsLoading] = useState(false);
 
-  async function handleGenerateAssignments() {
+  async function handleGenerateAssignments(config: {
+    strategy: "better-panel-first" | "equal-distribution";
+  }) {
     setIsLoading(true);
-    const result = await previewAssignmentsAction();
+    const result = await previewAssignmentsAction(config.strategy);
     setIsLoading(false);
 
     if (
@@ -85,6 +91,7 @@ export function TeamAssignmentManager({
       setPreviewAssignments(result.assignments);
       setAssignmentsByPanel(result.assignmentsByPanel);
       setAssignmentStats(result.stats);
+      setAssignmentStrategy(config.strategy);
       setViewMode("preview");
       toast.success("Assignments calculated (Preview Mode)");
     } else {
@@ -129,19 +136,11 @@ export function TeamAssignmentManager({
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Button
-              onClick={handleGenerateAssignments}
-              disabled={
-                isLoading || panels.length === 0 || unassignedCount === 0
-              }
-            >
-              {isLoading ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              ) : (
-                <Users className="mr-2 h-4 w-4" />
-              )}
-              Preview Assignments
-            </Button>
+            <AssignmentConfigDialog
+              isLoading={isLoading}
+              disabled={panels.length === 0 || unassignedCount === 0}
+              onGenerate={handleGenerateAssignments}
+            />
             {panels.length === 0 && (
               <p className="text-sm text-muted-foreground mt-2">
                 No panels available. Create panels first.

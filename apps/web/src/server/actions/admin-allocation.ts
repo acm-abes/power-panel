@@ -258,7 +258,9 @@ function normalizeTrack(dbTrack: string): "AI" | "Web3" | "Defense" {
   }
 }
 
-export async function previewAssignmentsAction() {
+export async function previewAssignmentsAction(
+  strategy: "better-panel-first" | "equal-distribution" = "better-panel-first",
+) {
   try {
     await checkAdmin();
 
@@ -327,8 +329,12 @@ export async function previewAssignmentsAction() {
       };
     });
 
-    // Run Assignment
-    const assignments = assignSubmissions(allocSubmissions, allocPanels); // submissionId -> panelId
+    // Run Assignment with selected strategy
+    const assignments = assignSubmissions(
+      allocSubmissions,
+      allocPanels,
+      strategy,
+    );
 
     // Build detailed assignment info for UI
     const assignmentDetails = Object.entries(assignments).map(
@@ -369,6 +375,7 @@ export async function previewAssignmentsAction() {
       assignments,
       assignmentDetails,
       assignmentsByPanel,
+      strategy,
       stats: {
         total: allocSubmissions.length,
         assigned: Object.keys(assignments).length,
