@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { getMyTeam } from "@/actions/get-my-team";
 import { getAllProblemStatements } from "@/actions/problem-statements";
+import { getTeamAnalytics } from "@/actions/get-team-analytics";
 import { Page, PageContent, PageHeading } from "@/components/page";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -30,8 +31,10 @@ export default async function MyTeamPage() {
 
   const teamMembership = await getMyTeam();
   const problemStatements = await getAllProblemStatements();
+  const team = teamMembership?.team;
+  const analyticsMembers = team ? await getTeamAnalytics(team.teamCode) : [];
 
-  if (!teamMembership) {
+  if (!teamMembership || !team) {
     return (
       <Page>
         <PageHeading title="My Team" />
@@ -48,7 +51,7 @@ export default async function MyTeamPage() {
     );
   }
 
-  const team = teamMembership.team;
+  // Calculate team statistics
 
   // Calculate team statistics
   const totalScore = team.evaluations.reduce((teamTotal, evaluation) => {
@@ -83,20 +86,73 @@ export default async function MyTeamPage() {
 
               <div className="border-t pt-4">
                 <h3 className="font-semibold mb-2">Team Members</h3>
-                <div className="flex flex-wrap gap-2">
-                  {team.members.map((member) => (
-                    <div key={member.id} className="flex items-center gap-2">
-                      <span>{member.user.name}</span>
-                      <Badge
-                        variant={
-                          member.role === "LEAD" ? "default" : "secondary"
-                        }
-                      >
-                        {member.role}
-                      </Badge>
-                    </div>
-                  ))}
-                </div>
+                {analyticsMembers.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {analyticsMembers.map((member) => {
+                      const signedInMember = team.members.find(
+                        (m) => m.user.email === member.userEmail,
+                      );
+                      const isSignedIn = !!signedInMember;
+
+                      return (
+                        <div
+                          key={member.id}
+                          className={`flex flex-col p-3 rounded-lg border ${
+                            isSignedIn
+                              ? "bg-green-500/10 border-green-500/50"
+                              : "bg-orange-500/10 border-orange-500/50"
+                          }`}
+                        >
+                          <div className="flex justify-between items-start mb-1">
+                            <span className="font-semibold text-sm truncate pr-2">
+                              {member.firstName} {member.lastName}
+                            </span>
+                            {isSignedIn ? (
+                              <Badge
+                                className="text-[10px] h-5 px-1.5"
+                                variant={
+                                  signedInMember.role === "LEAD"
+                                    ? "default"
+                                    : "secondary"
+                                }
+                              >
+                                {signedInMember.role}
+                              </Badge>
+                            ) : (
+                              <Badge
+                                variant="outline"
+                                className="text-[10px] h-5 px-1.5 border-orange-500/50 text-orange-600 dark:text-orange-400"
+                              >
+                                Pending
+                              </Badge>
+                            )}
+                          </div>
+                          <span
+                            className="text-xs text-muted-foreground truncate"
+                            title={member.userEmail}
+                          >
+                            {member.userEmail}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="flex flex-wrap gap-2">
+                    {team.members.map((member) => (
+                      <div key={member.id} className="flex items-center gap-2">
+                        <span>{member.user.name}</span>
+                        <Badge
+                          variant={
+                            member.role === "LEAD" ? "default" : "secondary"
+                          }
+                        >
+                          {member.role}
+                        </Badge>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
               <div className="border-t pt-4">
