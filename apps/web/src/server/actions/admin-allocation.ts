@@ -203,7 +203,7 @@ export async function confirmPanelsAction(panels: GeneratedPanel[]) {
         const createdPanel = await tx.panel.create({
           data: {
             name: p.id, // Auto-generated ID as name initially
-            capacity: 5, // Default capacity, maybe should be configurable?
+            capacity: p.capacity || 5, // Use capacity from generated panel
             // isLocked: false
           },
         });
