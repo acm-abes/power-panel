@@ -312,6 +312,11 @@ async function seedUsers() {
         email: generateEmail(firstName, lastName, 100 + i),
         emailVerified: true,
         image: `https://api.dicebear.com/7.x/avataaars/svg?seed=${userId}`,
+        trackPreferences: {
+          AI: Math.floor(Math.random() * 10) + 1,
+          Web3: Math.floor(Math.random() * 10) + 1,
+          Defense: Math.floor(Math.random() * 10) + 1,
+        },
       },
     });
 
