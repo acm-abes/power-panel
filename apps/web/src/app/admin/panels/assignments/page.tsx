@@ -46,6 +46,27 @@ export default async function AssignmentsPage() {
       slot: {
         select: { name: true, day: true, startTime: true, endTime: true },
       },
+      submissions: {
+        include: {
+          submission: {
+            include: {
+              team: {
+                select: {
+                  id: true,
+                  name: true,
+                  teamCode: true,
+                },
+              },
+              problemStatement: {
+                select: {
+                  title: true,
+                  track: true,
+                },
+              },
+            },
+          },
+        },
+      },
     },
   });
 

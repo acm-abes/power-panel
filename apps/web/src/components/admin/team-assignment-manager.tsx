@@ -40,6 +40,20 @@ interface Panel {
     startTime: string;
     endTime: string;
   } | null;
+  submissions: {
+    submission: {
+      id: string;
+      team: {
+        id: string;
+        name: string;
+        teamCode: string;
+      };
+      problemStatement: {
+        title: string;
+        track: string;
+      };
+    };
+  }[];
 }
 
 interface TeamAssignmentManagerProps {
@@ -135,6 +149,87 @@ export function TeamAssignmentManager({
 
   return (
     <div className="space-y-6">
+      {/* Current Assignments */}
+      {viewMode === "idle" && panels.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Current Panel Assignments</CardTitle>
+            <CardDescription>
+              View teams currently assigned to each panel
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Accordion type="single" collapsible className="w-full">
+              {panels.map((panel) => (
+                <AccordionItem value={panel.id} key={panel.id}>
+                  <AccordionTrigger className="hover:no-underline px-2">
+                    <div className="flex items-center gap-4 text-left w-full">
+                      <span className="font-semibold text-lg">
+                        {panel.name}
+                      </span>
+                      {panel.slot && (
+                        <Badge variant="secondary" className="text-xs">
+                          {panel.slot.name} - Day {panel.slot.day}
+                        </Badge>
+                      )}
+                      <div className="ml-auto mr-4 flex items-center gap-2">
+                        <Badge variant="outline">
+                          <Users className="h-3 w-3 mr-1" />
+                          {panel._count.judges} judges
+                        </Badge>
+                        <Badge variant="secondary">
+                          {panel._count.submissions} / {panel.capacity} teams
+                        </Badge>
+                      </div>
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    <div className="space-y-2 p-4 bg-muted/30 rounded-md">
+                      {panel.submissions.length === 0 ? (
+                        <p className="text-sm text-muted-foreground text-center py-4">
+                          No teams assigned to this panel yet
+                        </p>
+                      ) : (
+                        panel.submissions.map((assignment) => (
+                          <div
+                            key={assignment.submission.id}
+                            className="flex justify-between items-center text-sm p-3 bg-background rounded border"
+                          >
+                            <div className="flex flex-col gap-1">
+                              <span className="font-medium">
+                                {assignment.submission.team.name}
+                              </span>
+                              <span className="text-xs text-muted-foreground">
+                                {assignment.submission.team.teamCode} •{" "}
+                                {assignment.submission.problemStatement.title}
+                              </span>
+                            </div>
+                            <Badge
+                              variant="outline"
+                              className={
+                                assignment.submission.problemStatement.track ===
+                                "AI"
+                                  ? "border-blue-500 text-blue-500"
+                                  : assignment.submission.problemStatement
+                                        .track === "Web3"
+                                    ? "border-purple-500 text-purple-500"
+                                    : "border-green-500 text-green-500"
+                              }
+                            >
+                              {assignment.submission.problemStatement.track}
+                            </Badge>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Action Buttons */}
       {viewMode === "idle" && (
         <Card>

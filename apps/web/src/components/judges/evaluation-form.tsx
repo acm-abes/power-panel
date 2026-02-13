@@ -23,12 +23,11 @@ import {
   AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
-  AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Loader2, Save, Send, FileText, Users } from "lucide-react";
+import { Loader2, Save, Send, Users } from "lucide-react";
 import { toast } from "sonner";
 import { submitEvaluationAction } from "@/server/actions/judge-evaluation";
 
@@ -273,7 +272,7 @@ export function EvaluationForm({
     0,
   );
   const totalWithExtra = totalScore + extraPoints;
-  const maxScore = criteria.length * 100;
+  const maxScore = criteria.reduce((sum, c) => sum + c.fullMark, 0);
 
   return (
     <div className="space-y-6">
@@ -336,7 +335,7 @@ export function EvaluationForm({
             </div>
           </div>
 
-          {team.submission && (
+          {/* {team.submission && (
             <>
               <Separator />
               <div className="flex gap-4">
@@ -366,7 +365,7 @@ export function EvaluationForm({
                 )}
               </div>
             </>
-          )}
+          )} */}
         </CardContent>
       </Card>
 
@@ -428,7 +427,7 @@ export function EvaluationForm({
                 <Input
                   type="number"
                   min="0"
-                  max="100"
+                  max={criterion.fullMark}
                   value={scores[criterion.id] || 0}
                   onChange={(e) =>
                     handleScoreInputChange(criterion.id, e.target.value)
@@ -439,7 +438,7 @@ export function EvaluationForm({
               </div>
               <Slider
                 min={0}
-                max={100}
+                max={criterion.fullMark}
                 step={1}
                 value={[scores[criterion.id] || 0]}
                 onValueChange={(value) =>
@@ -580,18 +579,18 @@ export function EvaluationForm({
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Submit Evaluation?</AlertDialogTitle>
-            <AlertDialogDescription>
+            <div>
               Once submitted, you will not be able to edit this evaluation.
               Please ensure all scores and feedback are accurate.
-              <div className="mt-4 p-4 bg-muted rounded-md">
+              <p className="mt-4 p-4 bg-muted rounded-md">
                 <p className="font-medium">
                   Final Score: {totalWithExtra} points
                 </p>
                 <p className="text-sm text-muted-foreground mt-1">
                   ({totalScore} from criteria + {extraPoints} bonus)
                 </p>
-              </div>
-            </AlertDialogDescription>
+              </p>
+            </div>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={isSubmitting}>
