@@ -1,10 +1,12 @@
 /** @format */
 
 import { auth } from "@/lib/auth";
-import { prisma } from "@power/db";
 import { getUserRoles } from "@/lib/get-user-roles";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { prisma } from "@power/db";
+import { Page, PageHeading, PageContent } from "@/components/page";
+import { JudgeEvaluationClient } from "@/components/judges/evaluation-client";
 import {
   Card,
   CardContent,
@@ -12,7 +14,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Page, PageHeading, PageContent } from "@/components/page";
 
 export default async function JudgesEvaluatePage() {
   const session = await auth.api.getSession({
@@ -30,34 +31,11 @@ export default async function JudgesEvaluatePage() {
     redirect("/");
   }
 
-  // Get judge assignments
-  const judgeAssignments = await prisma.judgeAssignment.findMany({
-    where: { judgeId: session.user.id },
-    include: {
-      team: {
-        include: {
-          evaluations: {
-            where: {
-              judgeId: session.user.id,
-            },
-          },
-        },
-      },
-    },
-  });
-
-  // Get evaluation criteria
+  // Get evaluation criteria to display
   const criteria = await prisma.evaluationCriterion.findMany({
     where: { isActive: true },
     orderBy: { order: "asc" },
   });
-
-  const teamsToEvaluate = judgeAssignments.filter(
-    (assignment) => assignment.team.evaluations.length === 0,
-  );
-  const completedEvaluations = judgeAssignments.filter(
-    (assignment) => assignment.team.evaluations.length > 0,
-  );
 
   return (
     <Page>
@@ -67,90 +45,13 @@ export default async function JudgesEvaluatePage() {
       />
 
       <PageContent>
-        <div className="grid gap-6 md:grid-cols-2 mb-8">
-          <Card>
-            <CardHeader>
-              <CardTitle>Pending Evaluations</CardTitle>
-              <CardDescription>Teams waiting for your review</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold">{teamsToEvaluate.length}</div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Completed</CardTitle>
-              <CardDescription>
-                Evaluations you&apos;ve submitted
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold">
-                {completedEvaluations.length}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        <div className="space-y-6">
-          <div>
-            <h2 className="text-2xl font-semibold mb-4">Teams to Evaluate</h2>
-            {teamsToEvaluate.length === 0 ? (
-              <Card>
-                <CardContent className="py-8 text-center text-muted-foreground">
-                  No pending evaluations. Check back later!
-                </CardContent>
-              </Card>
-            ) : (
-              <div className="grid gap-4">
-                {teamsToEvaluate.map((assignment) => (
-                  <Card key={assignment.id}>
-                    <CardHeader>
-                      <CardTitle>{assignment.team.name}</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <a
-                        href={`/judges/evaluate/${assignment.team.id}`}
-                        className="text-primary hover:underline font-medium"
-                      >
-                        Start Evaluation →
-                      </a>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {completedEvaluations.length > 0 && (
-            <div>
-              <h2 className="text-2xl font-semibold mb-4">
-                Completed Evaluations
-              </h2>
-              <div className="grid gap-4">
-                {completedEvaluations.map((assignment) => (
-                  <Card key={assignment.id}>
-                    <CardHeader>
-                      <CardTitle>{assignment.team.name}</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <span className="text-sm text-muted-foreground">
-                        ✓ Evaluation submitted
-                      </span>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
+        <JudgeEvaluationClient />
 
         <Card className="mt-8">
           <CardHeader>
             <CardTitle>Evaluation Criteria</CardTitle>
             <CardDescription>
-              Use these criteria to score each team
+              Use these criteria to score each team (0-100 scale)
             </CardDescription>
           </CardHeader>
           <CardContent>

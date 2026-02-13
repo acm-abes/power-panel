@@ -11,7 +11,10 @@ import {
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Page, PageHeading, PageContent } from "@/components/page";
+import { Calendar } from "lucide-react";
+import Link from "next/link";
 
 export default async function JudgesPage() {
   const judges = await prisma.user.findMany({
@@ -43,10 +46,18 @@ export default async function JudgesPage() {
 
   return (
     <Page>
-      <PageHeading
-        title="Judges"
-        badge={<Badge variant="outline">{judges.length}</Badge>}
-      />
+      <div className="flex items-center justify-between">
+        <PageHeading
+          title="Judges"
+          badge={<Badge variant="outline">{judges.length}</Badge>}
+        />
+        <Link href="/admin/judges/availability">
+          <Button variant="outline">
+            <Calendar className=" h-4 w-4" />
+            Manage Availability
+          </Button>
+        </Link>
+      </div>
       <PageContent>
         <Card>
           <CardHeader>

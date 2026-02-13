@@ -51,11 +51,11 @@ export function ToggleLockButton({
           disabled={isLoading}
         >
           {isLoading ? (
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            <Loader2 className=" h-4 w-4 animate-spin" />
           ) : isLocked ? (
-            <Unlock className="mr-2 h-4 w-4" />
+            <Unlock className=" h-4 w-4" />
           ) : (
-            <Lock className="mr-2 h-4 w-4" />
+            <Lock className=" h-4 w-4" />
           )}
           {isLocked ? "Unlock Submission" : "Lock Submission"}
         </Button>

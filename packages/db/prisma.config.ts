@@ -11,8 +11,8 @@ export default defineConfig({
     path: "prisma/migrations",
   },
   datasource: {
-    url: process.env["DATABASE_URL"],
-    shadowDatabaseUrl:
-      "postgresql://postgres:postgres@host:5432/db?sslmode=require",
+    url:
+      process.env["DATABASE_URL"] ||
+      "postgresql://kunal_rana:postgres@127.0.0.1:55432/sah",
   },
 });

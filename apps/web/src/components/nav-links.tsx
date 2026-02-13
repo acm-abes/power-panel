@@ -128,6 +128,17 @@ export function NavLinks({
           >
             Email
           </Link>
+          <Link
+            href="/admin/panels"
+            className={cn(
+              "text-sm font-medium transition-colors hover:text-primary",
+              pathname === "/admin/panels"
+                ? "text-foreground"
+                : "text-muted-foreground",
+            )}
+          >
+            Panels
+          </Link>
         </>
       )}
 
