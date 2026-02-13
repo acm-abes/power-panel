@@ -73,7 +73,8 @@ export async function DashboardParticipant({
             <div>
               <CardTitle>{team.name}</CardTitle>
               <p className="text-sm text-muted-foreground mt-1">
-                Team Code: <span className="font-mono">{team.teamCode}</span>
+                Team Code/Team Id:{" "}
+                <span className="font-mono">{team.teamCode}</span>
               </p>
             </div>
             <Badge
