@@ -37,7 +37,7 @@ export default async function SlotsPage() {
         />
         <Link href="/admin/panels">
           <Button variant="outline" size="sm">
-            <ArrowLeft className="mr-2 h-4 w-4" />
+            <ArrowLeft className=" h-4 w-4" />
             Back to Panels
           </Button>
         </Link>

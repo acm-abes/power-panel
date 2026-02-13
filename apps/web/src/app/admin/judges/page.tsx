@@ -53,7 +53,7 @@ export default async function JudgesPage() {
         />
         <Link href="/admin/judges/availability">
           <Button variant="outline">
-            <Calendar className="mr-2 h-4 w-4" />
+            <Calendar className=" h-4 w-4" />
             Manage Availability
           </Button>
         </Link>

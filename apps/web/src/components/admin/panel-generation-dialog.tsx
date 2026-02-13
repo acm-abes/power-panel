@@ -110,7 +110,7 @@ export function PanelGenerationDialog({
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button disabled={isLoading}>
-          <Wand2 className="mr-2 h-4 w-4" />
+          <Wand2 className=" h-4 w-4" />
           Auto-Generate Panels
         </Button>
       </DialogTrigger>

@@ -131,7 +131,7 @@ export function PanelManager({ initialPanels }: PanelManagerProps) {
             />
             <Link href="/admin/panels/assignments">
               <Button variant="outline" disabled={initialPanels.length === 0}>
-                <Users className="mr-2 h-4 w-4" />
+                <Users className=" h-4 w-4" />
                 Manage Assignments
               </Button>
             </Link>
@@ -157,14 +157,14 @@ export function PanelManager({ initialPanels }: PanelManagerProps) {
             </CardDescription>
             <div className="flex gap-2 pt-2">
               <Button onClick={handleConfirmPanels} disabled={isLoading}>
-                <Check className="mr-2 h-4 w-4" /> Confirm & Save
+                <Check className=" h-4 w-4" /> Confirm & Save
               </Button>
               <Button
                 variant="ghost"
                 onClick={() => setViewMode("list")}
                 disabled={isLoading}
               >
-                <X className="mr-2 h-4 w-4" /> Discard
+                <X className=" h-4 w-4" /> Discard
               </Button>
             </div>
           </CardHeader>
@@ -380,7 +380,7 @@ export function PanelManager({ initialPanels }: PanelManagerProps) {
                             onClick={() => handleDeletePanel(panel.id)}
                             disabled={isLoading}
                           >
-                            <Trash2 className="mr-2 h-4 w-4" /> Delete Panel
+                            <Trash2 className=" h-4 w-4" /> Delete Panel
                           </Button>
                         </div>
                       </div>

@@ -125,7 +125,7 @@ export function SlotManager() {
           </p>
         </div>
         <Button onClick={handleCreateNew}>
-          <Plus className="mr-2 h-4 w-4" />
+          <Plus className=" h-4 w-4" />
           Create Slot
         </Button>
       </div>

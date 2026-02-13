@@ -176,14 +176,14 @@ export function TeamAssignmentManager({
             </CardDescription>
             <div className="flex gap-2 pt-2">
               <Button onClick={handleConfirmAssignments} disabled={isLoading}>
-                <Check className="mr-2 h-4 w-4" /> Confirm Assignments
+                <Check className=" h-4 w-4" /> Confirm Assignments
               </Button>
               <Button
                 variant="ghost"
                 onClick={handleDiscard}
                 disabled={isLoading}
               >
-                <X className="mr-2 h-4 w-4" /> Discard
+                <X className=" h-4 w-4" /> Discard
               </Button>
             </div>
           </CardHeader>
