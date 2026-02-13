@@ -5,8 +5,7 @@
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
-import { createOrUpdateSubmission } from "@/actions/submissions";
-import { uploadSubmissionFile } from "@/actions/upload-submission";
+import { createOrUpdateSubmissionWithUpload } from "@/lib/submission-client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -48,38 +47,7 @@ export function SubmissionForm({ problemStatements }: SubmissionFormProps) {
   const router = useRouter();
 
   const submissionMutation = useMutation({
-    mutationFn: async ({
-      psId,
-      documentFile,
-      pptFile,
-      additionalNotes,
-    }: {
-      psId: string;
-      documentFile: File;
-      pptFile: File;
-      additionalNotes?: string;
-    }) => {
-      // Upload document file to storage service
-      const documentFormData = new FormData();
-      documentFormData.append("file", documentFile);
-      const documentUploadResult = await uploadSubmissionFile(documentFormData);
-
-      // Upload PPT file if provided
-
-      const pptFormData = new FormData();
-      pptFormData.append("file", pptFile);
-      const pptUploadResult = await uploadSubmissionFile(pptFormData);
-
-      // Create submission with uploaded file details
-      return createOrUpdateSubmission({
-        psId,
-        documentPath: documentUploadResult.path,
-        documentSize: documentUploadResult.size,
-        pptPath: pptUploadResult.path,
-        pptSize: pptUploadResult.size,
-        additionalNotes: additionalNotes || undefined,
-      });
-    },
+    mutationFn: createOrUpdateSubmissionWithUpload,
     onSuccess: () => {
       router.refresh();
       toast.success("Submission created successfully!");
@@ -142,6 +110,22 @@ export function SubmissionForm({ problemStatements }: SubmissionFormProps) {
 
     if (!["pdf", "pptx"].includes(pptExt || "")) {
       toast.error("PPT must be PDF or PPTX format");
+      return;
+    }
+
+    // Check file size limit (50MB)
+    const maxFileSize = 50 * 1024 * 1024; // 50MB in bytes
+    if (documentFile.size > maxFileSize) {
+      toast.error(
+        `Document file size exceeds the maximum limit of 50MB. File size: ${(documentFile.size / 1024 / 1024).toFixed(2)}MB`,
+      );
+      return;
+    }
+
+    if (pptFile.size > maxFileSize) {
+      toast.error(
+        `Presentation file size exceeds the maximum limit of 50MB. File size: ${(pptFile.size / 1024 / 1024).toFixed(2)}MB`,
+      );
       return;
     }
 
@@ -240,7 +224,7 @@ export function SubmissionForm({ problemStatements }: SubmissionFormProps) {
                 </a>
                 <br />
               </span>
-              Accepted formats: PDF, DOC, DOCX
+              Accepted formats: PDF, DOC, DOCX (Max size: 50MB)
             </p>
           </div>
 
@@ -269,7 +253,7 @@ export function SubmissionForm({ problemStatements }: SubmissionFormProps) {
                 <br />
               </span>
               <br />
-              Accepted formats: PDF, PPTX
+              Accepted formats: PDF, PPTX (Max size: 50MB)
             </p>
           </div>
 
