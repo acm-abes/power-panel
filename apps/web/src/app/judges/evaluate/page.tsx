@@ -55,6 +55,7 @@ export default async function JudgesEvaluatePage() {
   const teamsToEvaluate = judgeAssignments.filter(
     (assignment) => assignment.team.evaluations.length === 0,
   );
+
   const completedEvaluations = judgeAssignments.filter(
     (assignment) => assignment.team.evaluations.length > 0,
   );

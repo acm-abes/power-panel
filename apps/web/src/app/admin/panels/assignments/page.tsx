@@ -43,12 +43,15 @@ export default async function AssignmentsPage() {
           },
         },
       },
+      slot: {
+        select: { name: true, day: true, startTime: true, endTime: true },
+      },
     },
   });
 
-  // Fetch unassigned submissions count
+  // Fetch unassigned submissions count (submissions without any assignments)
   const unassignedCount = await prisma.submission.count({
-    where: { panelId: null },
+    where: { assignments: { none: {} } },
   });
 
   return (

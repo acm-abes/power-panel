@@ -34,6 +34,12 @@ interface Panel {
   isLocked: boolean;
   _count: { judges: number; submissions: number };
   judges: { user: { id: string; name: string; trackPreferences: any } }[];
+  slot?: {
+    name: string;
+    day: number;
+    startTime: string;
+    endTime: string;
+  } | null;
 }
 
 interface TeamAssignmentManagerProps {
@@ -77,9 +83,13 @@ export function TeamAssignmentManager({
 
   async function handleGenerateAssignments(config: {
     strategy: "better-panel-first" | "equal-distribution";
+    slotFilter?: string;
   }) {
     setIsLoading(true);
-    const result = await previewAssignmentsAction(config.strategy);
+    const result = await previewAssignmentsAction(
+      config.strategy,
+      config.slotFilter,
+    );
     setIsLoading(false);
 
     if (

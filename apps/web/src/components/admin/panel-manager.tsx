@@ -20,7 +20,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Check, X, Users, Trash2, Lock } from "lucide-react";
+import { Check, X, Users, Trash2, Lock } from "lucide-react";
 import { toast } from "sonner";
 import {
   previewPanelsAction,
@@ -35,6 +35,12 @@ interface PanelManagerProps {
   initialPanels: (Panel & {
     _count: { judges: number; submissions: number };
     judges: { user: { id: string; name: string; trackPreferences: any } }[];
+    slot: {
+      name: string;
+      day: number;
+      startTime: string;
+      endTime: string;
+    } | null;
   })[];
 }
 
@@ -45,12 +51,14 @@ export function PanelManager({ initialPanels }: PanelManagerProps) {
   const [panelStrategy, setPanelStrategy] = useState<"fresh" | "unallocated">(
     "fresh",
   );
+  const [previewSlotId, setPreviewSlotId] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
 
   async function handleGeneratePanels(config: {
     strategy: "fresh" | "unallocated";
     judgesPerPanel: number;
     capacity: number;
+    slotId: string;
   }) {
     setIsLoading(true);
     const result = await previewPanelsAction(config);
@@ -59,6 +67,7 @@ export function PanelManager({ initialPanels }: PanelManagerProps) {
     if (result.success && result.panels) {
       setPreviewPanels(result.panels);
       setPanelStrategy(config.strategy);
+      setPreviewSlotId(config.slotId);
       setViewMode("preview-panels");
       toast.success("Panels generated successfully (Preview Mode)");
     } else {
@@ -68,13 +77,18 @@ export function PanelManager({ initialPanels }: PanelManagerProps) {
 
   async function handleConfirmPanels() {
     setIsLoading(true);
-    const result = await confirmPanelsAction(previewPanels, panelStrategy);
+    const result = await confirmPanelsAction(
+      previewPanels,
+      panelStrategy,
+      previewSlotId,
+    );
     setIsLoading(false);
 
     if (result.success) {
       toast.success("Panels saved to database");
       setViewMode("list");
       setPreviewPanels([]);
+      setPreviewSlotId("");
       router.refresh();
     } else {
       toast.error(result.error || "Failed to save panels");
@@ -120,6 +134,12 @@ export function PanelManager({ initialPanels }: PanelManagerProps) {
                 <Users className="mr-2 h-4 w-4" />
                 Manage Assignments
               </Button>
+            </Link>
+            <Link href="/admin/panels/slots">
+              <Button variant="outline">Manage Slots</Button>
+            </Link>
+            <Link href="/admin/judges/availability">
+              <Button variant="outline">Judge Availability</Button>
             </Link>
           </>
         )}
@@ -216,7 +236,8 @@ export function PanelManager({ initialPanels }: PanelManagerProps) {
             {initialPanels.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
                 <p>
-                  No panels found. Click "Auto-Generate Panels" to get started.
+                  No panels found. Click &quot;Auto-Generate Panels&quot; to get
+                  started.
                 </p>
               </div>
             ) : (
@@ -232,12 +253,24 @@ export function PanelManager({ initialPanels }: PanelManagerProps) {
                           {panel.name}
                         </span>
 
+                        {panel.slot && (
+                          <Badge
+                            variant="outline"
+                            className="font-mono text-xs"
+                          >
+                            {panel.slot.name}
+                          </Badge>
+                        )}
+
                         <div className="ml-auto mr-4 flex items-center gap-2">
                           <Badge variant="outline" className="font-mono">
                             Cap: {panel.capacity}
                           </Badge>
                           <Badge variant="secondary">
                             {panel._count.judges} Judges
+                          </Badge>
+                          <Badge variant="secondary">
+                            {panel._count.submissions} Assigned
                           </Badge>
                         </div>
                       </div>
@@ -278,6 +311,35 @@ export function PanelManager({ initialPanels }: PanelManagerProps) {
                               Panel Stats
                             </h4>
                             <div className="p-3 bg-card border rounded shadow-sm space-y-2 text-sm">
+                              {panel.slot && (
+                                <>
+                                  <div className="flex justify-between">
+                                    <span className="text-muted-foreground">
+                                      Evaluation Slot
+                                    </span>
+                                    <span className="font-medium">
+                                      {panel.slot.name}
+                                    </span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span className="text-muted-foreground">
+                                      Day
+                                    </span>
+                                    <span className="font-medium">
+                                      Day {panel.slot.day}
+                                    </span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span className="text-muted-foreground">
+                                      Time
+                                    </span>
+                                    <span className="font-medium">
+                                      {panel.slot.startTime} -{" "}
+                                      {panel.slot.endTime}
+                                    </span>
+                                  </div>
+                                </>
+                              )}
                               <div className="flex justify-between">
                                 <span className="text-muted-foreground">
                                   Assigned Submissions

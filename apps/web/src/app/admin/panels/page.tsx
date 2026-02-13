@@ -39,6 +39,9 @@ export default async function AdminPanelsPage() {
           },
         },
       },
+      slot: {
+        select: { name: true, day: true, startTime: true, endTime: true },
+      },
     },
   });
 

@@ -87,11 +87,15 @@ export async function assignSubmissionToPanel(
   }
 
   try {
-    await prisma.submission.update({
-      where: { id: submissionId },
-      data: { panelId },
+    // Create a SubmissionAssignment record instead of updating panelId
+    await prisma.submissionAssignment.create({
+      data: {
+        submissionId,
+        panelId,
+      },
     });
     revalidatePath("/admin/panels/[id]");
+    revalidatePath("/admin/panels/assignments");
     return { success: true };
   } catch (error) {
     console.error("Failed to assign submission:", error);
@@ -134,16 +138,22 @@ export async function previewPanelsAction(config: {
   judgesPerPanel: number;
   strategy: "fresh" | "unallocated";
   capacity: number;
+  slotId: string;
 }) {
   try {
     await checkAdmin();
 
-    // Fetch all judges
+    // Fetch all judges with their availability for the selected slot
     const allJudges = await prisma.user.findMany({
       where: {
         userRoles: {
           some: {
             role: { name: "JUDGE" },
+          },
+        },
+        judgeAvailabilities: {
+          some: {
+            slotId: config.slotId,
           },
         },
       },
@@ -152,7 +162,14 @@ export async function previewPanelsAction(config: {
         name: true,
         trackPreferences: true,
         panelJudges: {
-          select: { panelId: true },
+          select: {
+            panelId: true,
+            panel: {
+              select: {
+                slotId: true,
+              },
+            },
+          },
         },
       },
     });
@@ -160,14 +177,22 @@ export async function previewPanelsAction(config: {
     // Filter based on strategy
     let judgesToAllocate = allJudges;
     if (config.strategy === "unallocated") {
-      judgesToAllocate = allJudges.filter((j) => j.panelJudges.length === 0);
+      // For unallocated strategy in slot context, only consider judges not in any panel for this slot
+      judgesToAllocate = allJudges.filter(
+        (j) =>
+          j.panelJudges.filter((pj) => pj.panel.slotId === config.slotId)
+            .length === 0,
+      );
     }
 
     // Map to AllocationJudge
     const allocationJudges: AllocationJudge[] = judgesToAllocate.map((j) => ({
       id: j.id,
       name: j.name,
-      trackPreferences: (j.trackPreferences as any) || {
+      trackPreferences: (j.trackPreferences as Record<
+        "AI" | "Web3" | "Defense",
+        number
+      >) || {
         AI: 0,
         Web3: 0,
         Defense: 0,
@@ -179,10 +204,11 @@ export async function previewPanelsAction(config: {
       judgesPerPanel: config.judgesPerPanel,
     });
 
-    // Apply capacity to generated panels
+    // Apply capacity and slotId to generated panels
     const panelsWithCapacity = generatedPanels.map((p) => ({
       ...p,
       capacity: config.capacity,
+      slotId: config.slotId,
     }));
 
     return { success: true, panels: panelsWithCapacity };
@@ -195,18 +221,33 @@ export async function previewPanelsAction(config: {
 export async function confirmPanelsAction(
   panels: GeneratedPanel[],
   strategy: "fresh" | "unallocated",
+  slotId: string,
 ) {
   try {
     await checkAdmin();
 
     // Transactional save
     await prisma.$transaction(async (tx) => {
-      // If using "fresh" strategy, delete all existing panels first
-      // This ensures no judge is part of multiple panels
+      // If using "fresh" strategy, delete all existing panels for THIS SLOT
+      // This ensures no judge is part of multiple panels in the same slot
       if (strategy === "fresh") {
-        // Delete in order: panel judges, then panels
-        await tx.panelJudge.deleteMany({});
-        await tx.panel.deleteMany({});
+        // Get all panels for this slot
+        const panelsInSlot = await tx.panel.findMany({
+          where: { slotId },
+          select: { id: true },
+        });
+
+        // Delete panel judges for these panels
+        await tx.panelJudge.deleteMany({
+          where: {
+            panelId: { in: panelsInSlot.map((p) => p.id) },
+          },
+        });
+
+        // Delete panels for this slot
+        await tx.panel.deleteMany({
+          where: { slotId },
+        });
       }
 
       for (const p of panels) {
@@ -215,6 +256,7 @@ export async function confirmPanelsAction(
           data: {
             name: p.id, // Auto-generated ID as name initially
             capacity: p.capacity || 5, // Use capacity from generated panel
+            slotId: slotId,
             // isLocked: false
           },
         });
@@ -232,6 +274,7 @@ export async function confirmPanelsAction(
     });
 
     revalidatePath("/admin/panels");
+    revalidatePath("/admin/panels/slots");
     return { success: true };
   } catch (error) {
     console.error("Confirm panels failed:", error);
@@ -260,6 +303,7 @@ function normalizeTrack(dbTrack: string): "AI" | "Web3" | "Defense" {
 
 export async function previewAssignmentsAction(
   strategy: "better-panel-first" | "equal-distribution" = "better-panel-first",
+  slotFilter?: string,
 ) {
   try {
     await checkAdmin();
@@ -268,7 +312,9 @@ export async function previewAssignmentsAction(
     // Only fetch submissions that haven't been assigned to a panel yet
     const submissions = await prisma.submission.findMany({
       where: {
-        panelId: null, // Only unassigned submissions
+        assignments: {
+          none: {},
+        },
       },
       select: {
         id: true,
@@ -291,12 +337,26 @@ export async function previewAssignmentsAction(
 
     // Fetch Panels with Judges and Scores
     const dbPanels = await prisma.panel.findMany({
+      where: slotFilter
+        ? {
+            slotId: slotFilter,
+          }
+        : undefined,
       include: {
         judges: {
           include: {
             user: {
               select: { id: true, name: true, trackPreferences: true },
             },
+          },
+        },
+        slot: {
+          select: {
+            id: true,
+            name: true,
+            day: true,
+            startTime: true,
+            endTime: true,
           },
         },
         _count: { select: { submissions: true } },
@@ -313,7 +373,10 @@ export async function previewAssignmentsAction(
       const judges: AllocationJudge[] = p.judges.map((pj) => ({
         id: pj.user.id,
         name: pj.user.name,
-        trackPreferences: (pj.user.trackPreferences as any) || {
+        trackPreferences: (pj.user.trackPreferences as Record<
+          "AI" | "Web3" | "Defense",
+          number
+        >) || {
           AI: 0,
           Web3: 0,
           Defense: 0,
@@ -326,6 +389,7 @@ export async function previewAssignmentsAction(
         trackScore: computePanelTrackScores(judges),
         capacity: p.capacity,
         currentLoad: p._count.submissions,
+        slotId: p.slotId || undefined,
       };
     });
 
@@ -350,6 +414,8 @@ export async function previewAssignmentsAction(
           psTitle: submission.problemStatement.title,
           track: normalizeTrack(submission.problemStatement.track),
           panelName: panel.name,
+          slotName: panel.slot?.name,
+          slotId: panel.slotId,
         };
       },
     );
@@ -363,6 +429,7 @@ export async function previewAssignmentsAction(
       return {
         panelId: panel.id,
         panelName: panel.name,
+        slotName: panel.slot?.name,
         capacity: panel.capacity,
         currentLoad: panel._count.submissions,
         newAssignments: panelAssignments.length,
@@ -393,22 +460,55 @@ export async function confirmAssignmentsAction(
   try {
     await checkAdmin();
 
-    // Bulk update
-    // Prisma doesn't support generic bulk update with different values easily without raw query or loop.
-    // Loop is safer for now for reasonable size.
-
+    // Use a transaction to create all judge assignments atomically
     await prisma.$transaction(async (tx) => {
-      const promises = Object.entries(assignments).map(
-        ([submissionId, panelId]) =>
-          tx.submission.update({
-            where: { id: submissionId },
-            data: { panelId },
-          }),
-      );
-      await Promise.all(promises);
+      for (const [submissionId, panelId] of Object.entries(assignments)) {
+        // Get the submission to find the teamId
+        const submission = await tx.submission.findUnique({
+          where: { id: submissionId },
+          select: { teamId: true },
+        });
+
+        if (!submission) {
+          console.error(`Submission ${submissionId} not found`);
+          continue;
+        }
+
+        // Create SubmissionAssignment record
+        await tx.submissionAssignment.create({
+          data: {
+            submissionId,
+            panelId,
+          },
+        });
+
+        // Get all judges in this panel
+        const panelJudges = await tx.panelJudge.findMany({
+          where: { panelId },
+          select: { userId: true },
+        });
+
+        // Create JudgeAssignment for each judge in the panel
+        for (const panelJudge of panelJudges) {
+          await tx.judgeAssignment.upsert({
+            where: {
+              judgeId_teamId: {
+                judgeId: panelJudge.userId,
+                teamId: submission.teamId,
+              },
+            },
+            create: {
+              judgeId: panelJudge.userId,
+              teamId: submission.teamId,
+            },
+            update: {}, // If already exists, do nothing
+          });
+        }
+      }
     });
 
     revalidatePath("/admin/panels");
+    revalidatePath("/admin/panels/assignments");
     return { success: true };
   } catch (error) {
     console.error("Confirm assignments failed:", error);

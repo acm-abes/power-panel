@@ -25,6 +25,7 @@ export interface GeneratedPanel {
   trackScore: BoxedTrackScores;
   capacity?: number;
   currentLoad?: number;
+  slotId?: string;
 }
 
 export interface PanelConfig {
