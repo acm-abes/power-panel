@@ -19,6 +19,7 @@ import {
 import { headers } from "next/headers";
 import { SubmissionForm } from "@/components/submission-form";
 import { SubmissionDetails } from "@/components/submission-details";
+import { TeamEvaluationsClient } from "@/components/teams/team-evaluations-client";
 
 export default async function MyTeamPage() {
   const session = await auth.api.getSession({
@@ -209,80 +210,8 @@ export default async function MyTeamPage() {
           <SubmissionForm problemStatements={problemStatements} />
         )}
 
-        {team.evaluations.length > 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Evaluations</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {team.evaluations.map((evaluation) => {
-                  const evalTotal = evaluation.scores.reduce(
-                    (sum, score) => sum + score.score,
-                    0,
-                  );
-                  return (
-                    <Card key={evaluation.id}>
-                      <CardHeader>
-                        <div className="flex justify-between items-center">
-                          <CardTitle className="text-base">
-                            Judge: {evaluation.judge.name}
-                          </CardTitle>
-                          <Badge>
-                            Total:{" "}
-                            {(evalTotal + evaluation.extraPoints).toFixed(2)}
-                          </Badge>
-                        </div>
-                      </CardHeader>
-                      <CardContent>
-                        <Table>
-                          <TableHeader>
-                            <TableRow>
-                              <TableHead>Criterion</TableHead>
-                              <TableHead className="text-right">
-                                Score
-                              </TableHead>
-                            </TableRow>
-                          </TableHeader>
-                          <TableBody>
-                            {evaluation.scores.map((score) => (
-                              <TableRow key={score.id}>
-                                <TableCell>{score.criterion.key}</TableCell>
-                                <TableCell className="text-right">
-                                  {score.score}
-                                </TableCell>
-                              </TableRow>
-                            ))}
-                            {evaluation.extraPoints > 0 && (
-                              <TableRow>
-                                <TableCell className="font-medium">
-                                  Extra Points
-                                </TableCell>
-                                <TableCell className="text-right font-medium">
-                                  {evaluation.extraPoints}
-                                </TableCell>
-                              </TableRow>
-                            )}
-                          </TableBody>
-                        </Table>
-                        {evaluation.extraJustification && (
-                          <div className="mt-4">
-                            <p className="text-sm font-semibold">
-                              Extra Points Justification:
-                            </p>
-                            <p className="text-sm text-muted-foreground">
-                              {evaluation.extraJustification}
-                            </p>
-                          </div>
-                        )}
-                      </CardContent>
-                    </Card>
-                  );
-                })}
-              </div>
-            </CardContent>
-          </Card>
-        )}
+        {/* Evaluations with Radar Chart and Detailed Feedback */}
+        <TeamEvaluationsClient teamId={team.id} />
 
         {team.mentorFeedbacks.length > 0 && (
           <Card>

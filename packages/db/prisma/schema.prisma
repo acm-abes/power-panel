@@ -201,15 +201,19 @@ model Evaluation {
   submittedAt        DateTime?
   extraPoints        Int               @default(0)
   extraJustification String?
+  overallFeedback    String?
+  slotId             String?
   createdAt          DateTime          @default(now())
   updatedAt          DateTime          @updatedAt
   judge              User              @relation(fields: [judgeId], references: [id], onDelete: Cascade)
   team               Team              @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  slot               EvaluationSlot?   @relation(fields: [slotId], references: [id])
   scores             EvaluationScore[]
 
   @@unique([judgeId, teamId])
   @@index([judgeId])
   @@index([teamId])
+  @@index([slotId])
   @@map("evaluation")
 }
 
@@ -218,6 +222,7 @@ model EvaluationScore {
   evaluationId String
   criterionId  String
   score        Int
+  feedback     String?
   criterion    EvaluationCriterion @relation(fields: [criterionId], references: [id])
   evaluation   Evaluation          @relation(fields: [evaluationId], references: [id], onDelete: Cascade)
 
@@ -383,6 +388,7 @@ model EvaluationSlot {
   updatedAt           DateTime            @updatedAt
   panels              Panel[]
   judgeAvailabilities JudgeAvailability[]
+  evaluations         Evaluation[]
 
   @@unique([day, slotOrder])
   @@map("evaluation_slot")
