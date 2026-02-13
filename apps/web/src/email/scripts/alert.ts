@@ -125,7 +125,7 @@ Thank you for registering for Smart ABES Hackathon 2.0. We're excited to have yo
 
 Your Team Details:
 Team Name: ${teamData.teamName}
-Team Code: ${teamData.teamCode}
+Team Code/Team Id: ${teamData.teamCode}
 Members: ${teamData.membersInTeam}/4
 
 ⚠️ Action Required: Your team has ${teamData.membersInTeam} members but registration is not yet submitted.

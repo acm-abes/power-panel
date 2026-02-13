@@ -81,7 +81,7 @@ export function generateIncompleteTeamEmail(
             <div style="background:#e8f4f8;padding:15px;border-left:4px solid #00d4ff;margin:20px 0">
                 <strong>Your Team Details:</strong><br>
                 Team Name: ${data.teamName}<br>
-                Team Code: ${data.teamCode}<br>
+                Team Code/Team Id: ${data.teamCode}<br>
                 Members: ${data.membersInTeam}/4
             </div>
            
@@ -159,7 +159,7 @@ export function generateUnsubmittedTeamEmail(
             <div style="background:#e8f4f8;padding:15px;border-left:4px solid #00d4ff;margin:20px 0">
                 <strong>Your Team Details:</strong><br>
                 Team Name: ${data.teamName}<br>
-                Team Code: ${data.teamCode}<br>
+                Team Code/Team Id: ${data.teamCode}<br>
                 Current Members: ${data.membersInTeam}
             </div>
 
