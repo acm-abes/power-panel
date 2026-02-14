@@ -58,7 +58,7 @@ export default async function TeamEvaluationPage({
             <p className="text-destructive mb-4">{result.error}</p>
             <Link href="/judges/evaluate">
               <Button variant="outline">
-                <ArrowLeft className="mr-2 h-4 w-4" />
+                <ArrowLeft className=" h-4 w-4" />
                 Back to Evaluation Dashboard
               </Button>
             </Link>
@@ -77,7 +77,7 @@ export default async function TeamEvaluationPage({
         />
         <Link href="/judges/evaluate">
           <Button variant="outline" size="sm">
-            <ArrowLeft className="mr-2 h-4 w-4" />
+            <ArrowLeft className=" h-4 w-4" />
             Back
           </Button>
         </Link>

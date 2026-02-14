@@ -185,7 +185,7 @@ export function JudgeEvaluationClient() {
                   </CardContent>
                 </Card>
               ) : (
-                <div className="grid gap-4">
+                <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
                   {pendingTeams.map((team) => (
                     <Card key={team.id}>
                       <CardHeader>

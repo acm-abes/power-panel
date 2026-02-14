@@ -346,7 +346,7 @@ export function EvaluationForm({
                       target="_blank"
                       rel="noopener noreferrer"
                     >
-                      <FileText className="mr-2 h-4 w-4" />
+                      <FileText className=" h-4 w-4" />
                       View Document
                     </a>
                   </Button>
@@ -358,7 +358,7 @@ export function EvaluationForm({
                       target="_blank"
                       rel="noopener noreferrer"
                     >
-                      <FileText className="mr-2 h-4 w-4" />
+                      <FileText className=" h-4 w-4" />
                       View Presentation
                     </a>
                   </Button>
@@ -544,9 +544,9 @@ export function EvaluationForm({
             disabled={isSubmitting}
           >
             {isSubmitting ? (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              <Loader2 className=" h-4 w-4 animate-spin" />
             ) : (
-              <Save className="mr-2 h-4 w-4" />
+              <Save className=" h-4 w-4" />
             )}
             Save Draft
           </Button>
@@ -555,9 +555,9 @@ export function EvaluationForm({
             disabled={isSubmitting}
           >
             {isSubmitting ? (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              <Loader2 className=" h-4 w-4 animate-spin" />
             ) : (
-              <Send className="mr-2 h-4 w-4" />
+              <Send className=" h-4 w-4" />
             )}
             Submit Evaluation
           </Button>
@@ -599,7 +599,7 @@ export function EvaluationForm({
             <AlertDialogAction onClick={handleSubmit} disabled={isSubmitting}>
               {isSubmitting ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  <Loader2 className=" h-4 w-4 animate-spin" />
                   Submitting...
                 </>
               ) : (
