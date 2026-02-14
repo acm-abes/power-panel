@@ -1153,35 +1153,37 @@ export async function getSuggestedAssignments(filter?: {
     }));
 
     const allocPanels = panels.map((p) => {
-      const trackScores = computePanelTrackScores(
-        p.judges.map((j) => ({
-          id: j.userId,
-          name: j.user.name,
-          trackPreferences: (j.user.trackPreferences as Record<
-            "AI" | "Web3" | "Defense",
-            number
-          >) || {
-            AI: 0,
-            Web3: 0,
-            Defense: 0,
-          },
-        })),
-      );
+      const judgesList = p.judges.map((j) => ({
+        id: j.userId,
+        name: j.user.name,
+        trackPreferences: (j.user.trackPreferences as Record<
+          "AI" | "Web3" | "Defense",
+          number
+        >) || {
+          AI: 0,
+          Web3: 0,
+          Defense: 0,
+        },
+      }));
+
+      const trackScores = computePanelTrackScores(judgesList);
 
       return {
         id: p.id,
         name: p.name,
         capacity: p.capacity,
         currentLoad: p._count.submissions,
-        judges: p.judges.map((j) => j.userId),
-        trackScores,
+        judges: judgesList,
+        trackScore: trackScores,
       };
     });
 
     // Run assignment algorithm
-    const assignments = assignSubmissions(allocSubmissions, allocPanels, {
-      strategy: "equal-distribution",
-    });
+    const assignments = assignSubmissions(
+      allocSubmissions,
+      allocPanels,
+      "equal-distribution",
+    );
 
     // Build suggested assignments with details
     const suggestions = Object.entries(assignments).map(
