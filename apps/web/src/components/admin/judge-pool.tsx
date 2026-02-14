@@ -23,6 +23,7 @@ type Judge = {
   trackPreferences: { AI: number; Web3: number; Defense: number };
   inPanelId?: string;
   inPanelName?: string;
+  inPanelSlotId?: string;
 };
 
 type JudgePoolProps = {

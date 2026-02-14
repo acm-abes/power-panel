@@ -191,6 +191,7 @@ export default async function AdminPanelsPage() {
       },
       inPanelId: inPanel?.panel.id,
       inPanelName: inPanel?.panel.name,
+      inPanelSlotId: inPanel?.panel.slotId ?? undefined,
     };
   });
 
