@@ -73,7 +73,7 @@ function DraggableSubmissionCard({ submission }: { submission: Submission }) {
     <Card
       ref={setNodeRef}
       style={style}
-      className={`p-4 transition-all cursor-move border-2 ${
+      className={`p-4 transition-all cursor-move border-2 rounded-none ${
         trackStyles.bg
       } ${trackStyles.border} hover:shadow-lg ${
         isDragging ? "opacity-50 scale-105 shadow-xl rotate-2" : ""

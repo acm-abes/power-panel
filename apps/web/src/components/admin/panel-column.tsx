@@ -334,7 +334,7 @@ export function PanelColumn({
                 panel.judges.map((judge) => (
                   <Card
                     key={judge.id}
-                    className="p-3 bg-linear-to-br border shadow-sm hover:shadow-md transition-shadow"
+                    className="p-3 rounded-xs bg-linear-to-br border shadow-sm hover:shadow-md transition-shadow"
                   >
                     <div className="flex items-start justify-between">
                       <div className="flex-1 min-w-0">
@@ -386,7 +386,7 @@ export function PanelColumn({
                 panel.submissions.map((submission) => (
                   <Card
                     key={submission.id}
-                    className="p-3 bg-linear-to-br border shadow-sm hover:shadow-md transition-shadow"
+                    className="p-3 rounded-xs bg-linear-to-br border shadow-sm hover:shadow-md transition-shadow"
                   >
                     <div className="flex items-start gap-2">
                       <div className="flex-1 min-w-0">

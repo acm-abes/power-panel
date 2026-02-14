@@ -67,7 +67,7 @@ function DraggableJudgeCard({ judge }: { judge: Judge }) {
     <Card
       ref={setNodeRef}
       style={style}
-      className={`p-4 transition-all border-2 ${
+      className={`p-4 transition-all border-x-2 rounded-none ${
         isDragging ? "opacity-50 scale-105 shadow-xl" : ""
       } ${
         isAssigned
