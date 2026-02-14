@@ -197,7 +197,7 @@ export function JudgePool({ judges }: JudgePoolProps) {
       </div>
 
       {/* Judge Cards */}
-      <div className="flex-1 space-y-2 overflow-y-auto">
+      <div className="flex-1 space-y-2 overflow-y-auto overflow-x-hidden">
         {filteredJudges.length === 0 ? (
           <div className="flex h-full items-center justify-center text-center text-sm text-muted-foreground">
             {searchQuery || trackFilter !== "all"

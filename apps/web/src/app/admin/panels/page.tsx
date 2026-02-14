@@ -209,7 +209,7 @@ export default async function AdminPanelsPage() {
     <Page>
       <PageHeading title="Panel Management" />
 
-      <PageContent className="h-[calc(100vh-200px)]">
+      <PageContent className="">
         <PanelBoard
           initialSlots={slots}
           initialPanels={panels}

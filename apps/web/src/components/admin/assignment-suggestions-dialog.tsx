@@ -204,12 +204,12 @@ export function AssignmentSuggestionsDialog({
                 >
                   {applying ? (
                     <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      <Loader2 className=" h-4 w-4 animate-spin" />
                       Applying...
                     </>
                   ) : (
                     <>
-                      <CheckCircle className="mr-2 h-4 w-4" />
+                      <CheckCircle className=" h-4 w-4" />
                       Apply All
                     </>
                   )}

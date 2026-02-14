@@ -154,7 +154,7 @@ export function PanelValidationAlerts({
                 {errors.map((issue, idx) => (
                   <li key={idx} className="text-sm">
                     {issue.panelName && (
-                      <Badge variant="outline" className="mr-2 text-xs">
+                      <Badge variant="outline" className=" text-xs">
                         {issue.panelName}
                       </Badge>
                     )}
@@ -180,7 +180,7 @@ export function PanelValidationAlerts({
                 {warnings.map((issue, idx) => (
                   <li key={idx} className="text-sm">
                     {issue.panelName && (
-                      <Badge variant="outline" className="mr-2 text-xs">
+                      <Badge variant="outline" className=" text-xs">
                         {issue.panelName}
                       </Badge>
                     )}
@@ -203,7 +203,7 @@ export function PanelValidationAlerts({
                 {infos.map((issue, idx) => (
                   <li key={idx} className="text-sm">
                     {issue.panelName && (
-                      <Badge variant="outline" className="mr-2 text-xs">
+                      <Badge variant="outline" className=" text-xs">
                         {issue.panelName}
                       </Badge>
                     )}

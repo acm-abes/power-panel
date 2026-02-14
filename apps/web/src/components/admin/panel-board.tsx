@@ -387,12 +387,12 @@ export function PanelBoard({
             onClick={() => setSuggestionsOpen(true)}
             disabled={unassignedSubmissions.length === 0}
           >
-            <Wand2 className="mr-2 h-4 w-4" />
+            <Wand2 className=" h-4 w-4" />
             Get Suggestions
           </Button>
 
           <Button variant="outline" onClick={() => setCreatePanelOpen(true)}>
-            <Plus className="mr-2 h-4 w-4" />
+            <Plus className=" h-4 w-4" />
             Create Panel
           </Button>
         </div>
@@ -429,7 +429,7 @@ export function PanelBoard({
                 <div className="text-center">
                   <p className="mb-2 text-lg">No panels for this slot</p>
                   <Button onClick={() => setCreatePanelOpen(true)} size="lg">
-                    <Plus className="mr-2 h-5 w-5" />
+                    <Plus className=" h-5 w-5" />
                     Create First Panel
                   </Button>
                 </div>
