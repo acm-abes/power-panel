@@ -187,7 +187,12 @@ export function PanelBoard({
   // Unassigned submissions
   const unassignedSubmissions = initialSubmissions.filter(
     (s) =>
-      !panels.some((p) => p.submissions?.some((ps) => ps.id === s.id) ?? false),
+      !panels.some(
+        (p) =>
+          p.submissions?.some(
+            (ps) => ps.id === s.id && ps.isLocked === false,
+          ) ?? false,
+      ),
   );
 
   const handleDragStart = useCallback((event: DragStartEvent) => {
