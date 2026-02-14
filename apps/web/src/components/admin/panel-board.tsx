@@ -411,9 +411,9 @@ export function PanelBoard({
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
       >
-        <div className="flex flex-1 gap-4 overflow-hidden">
+        <div className="flex gap-6">
           {/* Left Sidebar - Judge Pool */}
-          <div className="w-80 shrink-0 overflow-y-auto border-r pr-4">
+          <div className="w-96 shrink-0 border-r pr-6">
             <JudgePool
               judges={availableJudges}
               selectedSlotId={
@@ -422,14 +422,14 @@ export function PanelBoard({
             />
           </div>
 
-          {/* Center - Panel Columns */}
-          <div className="flex flex-1 gap-4 overflow-x-auto overflow-y-hidden">
+          {/* Center - Panel Columns (Vertical Stack) */}
+          <div className="flex-1 flex flex-col gap-6 max-h-180 overflow-y-auto min-w-0 pr-2">
             {filteredPanels.length === 0 ? (
               <div className="flex flex-1 items-center justify-center text-muted-foreground">
                 <div className="text-center">
-                  <p className="mb-2">No panels for this slot</p>
-                  <Button onClick={() => setCreatePanelOpen(true)}>
-                    <Plus className="mr-2 h-4 w-4" />
+                  <p className="mb-2 text-lg">No panels for this slot</p>
+                  <Button onClick={() => setCreatePanelOpen(true)} size="lg">
+                    <Plus className="mr-2 h-5 w-5" />
                     Create First Panel
                   </Button>
                 </div>
@@ -452,7 +452,7 @@ export function PanelBoard({
           </div>
 
           {/* Right Sidebar - Submission Queue */}
-          <div className="w-80 shrink-0 overflow-y-auto border-l pl-4">
+          <div className="w-96 shrink-0 border-l pl-6">
             <SubmissionQueue submissions={unassignedSubmissions} />
           </div>
         </div>

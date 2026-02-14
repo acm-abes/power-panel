@@ -154,10 +154,12 @@ export function PanelColumn({
   return (
     <>
       <Card
-        className={`w-96 shrink-0 flex flex-col ${
+        className={`w-full shrink-0 flex flex-col max-h-180 shadow-lg ${
           panel.isLocked ? "bg-muted/30" : ""
-        } ${isOverCapacity ? "border-destructive" : ""} ${
-          hasNoJudges && panel.submissions.length > 0 ? "border-yellow-500" : ""
+        } ${isOverCapacity ? "border-destructive border-2" : ""} ${
+          hasNoJudges && panel.submissions.length > 0
+            ? "border-yellow-500 border-2"
+            : ""
         }`}
       >
         <CardHeader className="space-y-2 pb-3">
@@ -242,31 +244,52 @@ export function PanelColumn({
           </div>
 
           {/* Capacity & Track Scores */}
-          <div className="space-y-1">
-            <div className="text-sm">
-              <span
-                className={
-                  isOverCapacity ? "font-semibold text-destructive" : ""
-                }
-              >
-                {panel.submissions.length}/{panel.capacity}
-              </span>
-              <span className="text-muted-foreground"> submissions</span>
+          <div className="space-y-2">
+            <div className="space-y-1">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">Capacity</span>
+                <span
+                  className={
+                    isOverCapacity
+                      ? "font-bold text-destructive"
+                      : panel.submissions.length === panel.capacity
+                        ? "font-semibold text-green-600"
+                        : "font-medium"
+                  }
+                >
+                  {panel.submissions.length}/{panel.capacity}
+                </span>
+              </div>
+              {/* Progress Bar */}
+              <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
+                <div
+                  className={`h-2 rounded-full transition-all duration-300 ${
+                    isOverCapacity
+                      ? "bg-red-500"
+                      : panel.submissions.length === panel.capacity
+                        ? "bg-green-500"
+                        : "bg-blue-500"
+                  }`}
+                  style={{
+                    width: `${Math.min((panel.submissions.length / panel.capacity) * 100, 100)}%`,
+                  }}
+                />
+              </div>
             </div>
 
-            <div className="flex flex-wrap gap-1">
+            <div className="flex flex-wrap gap-1.5">
               {panel.trackScores.AI > 0 && (
-                <Badge variant="secondary" className="text-xs">
+                <Badge className="text-xs font-medium bg-blue-100 text-blue-700 border-blue-300">
                   AI: {panel.trackScores.AI}
                 </Badge>
               )}
               {panel.trackScores.Web3 > 0 && (
-                <Badge variant="secondary" className="text-xs">
+                <Badge className="text-xs font-medium bg-purple-100 text-purple-700 border-purple-300">
                   Web3: {panel.trackScores.Web3}
                 </Badge>
               )}
               {panel.trackScores.Defense > 0 && (
-                <Badge variant="secondary" className="text-xs">
+                <Badge className="text-xs font-medium bg-green-100 text-green-700 border-green-300">
                   Defense: {panel.trackScores.Defense}
                 </Badge>
               )}
@@ -274,29 +297,34 @@ export function PanelColumn({
           </div>
         </CardHeader>
 
-        <CardContent className="flex-1 space-y-4 overflow-y-auto">
+        <CardContent className="flex-1 space-y-5 overflow-y-auto p-4">
           {/* Judges Section */}
           <div>
-            <h4 className="mb-2 text-sm font-medium">
+            <h4 className="mb-3 text-sm font-semibold text-foreground">
               Judges ({panel.judges.length})
             </h4>
             {/* eslint-disable-next-line react-compiler/react-compiler */}
             <div
               ref={judgesDroppable.setNodeRef}
-              className={`min-h-25 rounded-md border-2 border-dashed p-2 space-y-2 ${
-                judgesDroppable.isOver ? "border-primary bg-primary/5" : ""
+              className={`min-h-32 rounded-lg border-2 border-dashed p-3 space-y-2 transition-all ${
+                judgesDroppable.isOver
+                  ? "border-primary bg-primary/10 scale-[1.01]"
+                  : "border-muted-foreground/25"
               } ${panel.isLocked ? "bg-muted/50" : ""}`}
             >
               {panel.judges.length === 0 ? (
-                <p className="text-center text-sm text-muted-foreground py-8">
-                  {panel.isLocked ? "Panel locked" : "Drag judges here"}
+                <p className="text-center text-sm text-muted-foreground py-10">
+                  {panel.isLocked ? "🔒 Panel locked" : "👥 Drag judges here"}
                 </p>
               ) : (
                 panel.judges.map((judge) => (
-                  <Card key={judge.id} className="p-2">
+                  <Card
+                    key={judge.id}
+                    className="p-3 bg-linear-to-br border shadow-sm hover:shadow-md transition-shadow"
+                  >
                     <div className="flex items-start justify-between">
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate">
+                        <p className="text-sm font-semibold truncate">
                           {judge.name}
                         </p>
                         <p className="text-xs text-muted-foreground truncate">
@@ -308,9 +336,9 @@ export function PanelColumn({
                           size="icon"
                           variant="ghost"
                           onClick={() => onRemoveJudge(judge.id, panel.id)}
-                          className="h-6 w-6 text-destructive hover:text-destructive"
+                          className="h-7 w-7 text-destructive hover:text-destructive hover:bg-destructive/10"
                         >
-                          <X className="h-3 w-3" />
+                          <X className="h-4 w-4" />
                         </Button>
                       )}
                     </div>
@@ -322,38 +350,53 @@ export function PanelColumn({
 
           {/* Submissions Section */}
           <div>
-            <h4 className="mb-2 text-sm font-medium">
+            <h4 className="mb-3 text-sm font-semibold text-foreground">
               Submissions ({panel.submissions.length}/{panel.capacity})
             </h4>
             {/* eslint-disable-next-line react-compiler/react-compiler */}
             <div
               ref={submissionsDroppable.setNodeRef}
-              className={`min-h-37.5 rounded-md border-2 border-dashed p-2 space-y-2 ${
-                submissionsDroppable.isOver ? "border-primary bg-primary/5" : ""
+              className={`min-h-40 rounded-lg border-2 border-dashed p-3 space-y-2 transition-all ${
+                submissionsDroppable.isOver
+                  ? "border-primary bg-primary/10 scale-[1.01]"
+                  : "border-muted-foreground/25"
               } ${panel.isLocked ? "bg-muted/50" : ""}`}
             >
               {panel.submissions.length === 0 ? (
-                <p className="text-center text-sm text-muted-foreground py-12">
-                  {panel.isLocked ? "Panel locked" : "Drag submissions here"}
+                <p className="text-center text-sm text-muted-foreground py-14">
+                  {panel.isLocked
+                    ? "🔒 Panel locked"
+                    : "📄 Drag submissions here"}
                 </p>
               ) : (
                 panel.submissions.map((submission) => (
-                  <Card key={submission.id} className="p-2">
+                  <Card
+                    key={submission.id}
+                    className="p-3 bg-linear-to-br border shadow-sm hover:shadow-md transition-shadow"
+                  >
                     <div className="flex items-start gap-2">
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate">
+                        <p className="text-sm font-semibold truncate">
                           {submission.teamName}
                         </p>
-                        <p className="text-xs text-muted-foreground truncate">
+                        <p className="text-xs text-muted-foreground truncate mt-0.5">
                           {submission.psTitle}
                         </p>
-                        <div className="mt-1 flex items-center gap-1">
-                          <Badge variant="outline" className="text-xs">
+                        <div className="mt-2 flex items-center gap-1.5">
+                          <Badge
+                            className={`text-xs font-medium ${
+                              submission.track === "AI"
+                                ? "bg-blue-100 text-blue-700 border-blue-300"
+                                : submission.track === "Web3"
+                                  ? "bg-purple-100 text-purple-700 border-purple-300"
+                                  : "bg-green-100 text-green-700 border-green-300"
+                            }`}
+                          >
                             {submission.track}
                           </Badge>
                           {submission.isLocked && (
                             <Badge variant="secondary" className="text-xs">
-                              <LockKeyhole className="mr-1 h-2 w-2" />
+                              <LockKeyhole className="mr-1 h-2.5 w-2.5" />
                               Locked
                             </Badge>
                           )}
@@ -366,12 +409,12 @@ export function PanelColumn({
                           onClick={() =>
                             handleToggleSubmissionLock(submission.id)
                           }
-                          className="h-6 w-6"
+                          className="h-7 w-7"
                         >
                           {submission.isLocked ? (
-                            <LockKeyhole className="h-3 w-3" />
+                            <LockKeyhole className="h-3.5 w-3.5" />
                           ) : (
-                            <LockOpen className="h-3 w-3" />
+                            <LockOpen className="h-3.5 w-3.5" />
                           )}
                         </Button>
                         {!submission.isLocked && !panel.isLocked && (
@@ -381,9 +424,9 @@ export function PanelColumn({
                             onClick={() =>
                               onRemoveSubmission(submission.id, panel.id)
                             }
-                            className="h-6 w-6 text-destructive hover:text-destructive"
+                            className="h-7 w-7 text-destructive hover:text-destructive hover:bg-destructive/10"
                           >
-                            <X className="h-3 w-3" />
+                            <X className="h-4 w-4" />
                           </Button>
                         )}
                       </div>
