@@ -24,10 +24,30 @@ async function checkAdmin() {
 }
 
 function normalizeTrack(track: string) {
+  const normalized = track.toLowerCase().trim();
+  // Exact matches first
+  if (normalized === "ai" || normalized === "ml") return "AI";
+  if (normalized === "web3" || normalized === "blockchain") return "Web3";
+  if (
+    normalized === "defense" ||
+    normalized === "defence" ||
+    normalized === "cyber" ||
+    normalized === "cybersecurity"
+  )
+    return "Defense";
+
+  // Fallback to substring matching
   const upper = track.toUpperCase();
   if (upper.includes("AI") || upper.includes("ML")) return "AI";
   if (upper.includes("WEB3") || upper.includes("BLOCK")) return "Web3";
-  if (upper.includes("DEFENSE") || upper.includes("CYBER")) return "Defense";
+  if (
+    upper.includes("DEFENSE") ||
+    upper.includes("DEFENCE") ||
+    upper.includes("CYBER")
+  )
+    return "Defense";
+
+  console.warn(`Unknown track value: ${track}, defaulting to AI`);
   return "AI";
 }
 

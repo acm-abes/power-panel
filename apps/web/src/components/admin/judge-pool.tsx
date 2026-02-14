@@ -32,7 +32,18 @@ type JudgePoolProps = {
   selectedSlotId?: string;
 };
 
-function DraggableJudgeCard({ judge }: { judge: Judge }) {
+function DraggableJudgeCard({
+  judge,
+  selectedSlotId,
+}: {
+  judge: Judge;
+  selectedSlotId?: string;
+}) {
+  // Judge is considered assigned only if they're in a panel in the current slot
+  const isAssignedInCurrentSlot = selectedSlotId
+    ? judge.inPanelId && judge.inPanelSlotId === selectedSlotId
+    : !!judge.inPanelId; // When viewing "all" slots, show as assigned if in any panel
+
   const { attributes, listeners, setNodeRef, transform, isDragging } =
     useDraggable({
       id: `judge-${judge.id}`,
@@ -41,7 +52,7 @@ function DraggableJudgeCard({ judge }: { judge: Judge }) {
         id: judge.id,
         data: judge,
       },
-      disabled: !!judge.inPanelId,
+      disabled: !!isAssignedInCurrentSlot,
     });
 
   const style = transform
@@ -50,8 +61,6 @@ function DraggableJudgeCard({ judge }: { judge: Judge }) {
       }
     : undefined;
 
-  const isAssigned = !!judge.inPanelId;
-
   // Get the top track preference
   const topTrack =
     (Object.entries(judge.trackPreferences).reduce((a, b) =>
@@ -59,9 +68,9 @@ function DraggableJudgeCard({ judge }: { judge: Judge }) {
     )[0] as "AI" | "Web3" | "Defense") || "AI";
 
   const trackColors = {
-    AI: "from-blue-500/10 to-blue-600/5 border-blue-200",
-    Web3: "from-purple-500/10 to-purple-600/5 border-purple-200",
-    Defense: "from-green-500/10 to-green-600/5 border-green-200",
+    AI: "from-blue-500/10 to-blue-600/5 border-r-blue-200",
+    Web3: "from-purple-500/10 to-purple-600/5 border-r-purple-200",
+    Defense: "from-green-500/10 to-green-600/5 border-r-green-200",
   };
 
   return (
@@ -71,13 +80,13 @@ function DraggableJudgeCard({ judge }: { judge: Judge }) {
       className={`p-4 transition-all border-x-2 rounded-none ${
         isDragging ? "opacity-50 scale-105 shadow-xl" : ""
       } ${
-        isAssigned
+        isAssignedInCurrentSlot
           ? "cursor-not-allowed opacity-60 bg-muted/50"
           : `cursor-move hover:shadow-lg bg-linear-to-br ${trackColors[topTrack]}`
       }`}
     >
       <div className="flex items-start gap-3">
-        {!isAssigned && (
+        {!isAssignedInCurrentSlot && (
           <div
             {...attributes}
             {...listeners}
@@ -90,7 +99,7 @@ function DraggableJudgeCard({ judge }: { judge: Judge }) {
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
             <p className="font-semibold truncate text-base">{judge.name}</p>
-            {isAssigned && (
+            {isAssignedInCurrentSlot && (
               <CheckCircle2 className="h-5 w-5 shrink-0 text-green-600" />
             )}
           </div>
@@ -116,7 +125,7 @@ function DraggableJudgeCard({ judge }: { judge: Judge }) {
             )}
           </div>
 
-          {isAssigned && (
+          {isAssignedInCurrentSlot && (
             <div className="mt-3 pt-2 border-t">
               <p className="text-xs text-muted-foreground">
                 Assigned to:{" "}
@@ -132,7 +141,7 @@ function DraggableJudgeCard({ judge }: { judge: Judge }) {
   );
 }
 
-export function JudgePool({ judges }: JudgePoolProps) {
+export function JudgePool({ judges, selectedSlotId }: JudgePoolProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [trackFilter, setTrackFilter] = useState<string>("all");
 
@@ -156,10 +165,16 @@ export function JudgePool({ judges }: JudgePoolProps) {
   }, [judges, searchQuery, trackFilter]);
 
   const stats = useMemo(() => {
-    const available = judges.filter((j) => !j.inPanelId).length;
-    const assigned = judges.filter((j) => j.inPanelId).length;
+    // When viewing a specific slot, count judges assigned in that slot
+    // When viewing all slots, count judges assigned to any panel
+    const assigned = judges.filter((j) =>
+      selectedSlotId
+        ? j.inPanelId && j.inPanelSlotId === selectedSlotId
+        : !!j.inPanelId,
+    ).length;
+    const available = judges.length - assigned;
     return { available, assigned, total: judges.length };
-  }, [judges]);
+  }, [judges, selectedSlotId]);
 
   return (
     <div className="flex max-h-180 flex-col">
@@ -208,7 +223,11 @@ export function JudgePool({ judges }: JudgePoolProps) {
           </div>
         ) : (
           filteredJudges.map((judge) => (
-            <DraggableJudgeCard key={judge.id} judge={judge} />
+            <DraggableJudgeCard
+              key={judge.id}
+              judge={judge}
+              selectedSlotId={selectedSlotId}
+            />
           ))
         )}
       </div>

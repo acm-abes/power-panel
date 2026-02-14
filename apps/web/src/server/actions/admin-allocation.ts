@@ -25,7 +25,18 @@ async function checkAdmin() {
   return session.user;
 }
 
+/**
+ * @deprecated This function is deprecated and should not be used.
+ * It deletes ALL panel assignments for a judge across ALL slots, breaking slot-based isolation.
+ * Use `assignJudgeToPanelAction` instead, which properly handles slot-based validation.
+ *
+ * Bug: This function removes judges from panels in ALL slots when assigning to a new panel,
+ * preventing judges from being assigned to multiple panels across different time slots.
+ */
 export async function assignJudgeToPanel(judgeId: string, panelId: string) {
+  console.warn(
+    "DEPRECATED: assignJudgeToPanel is deprecated. Use assignJudgeToPanelAction instead.",
+  );
   try {
     await checkAdmin();
   } catch {
@@ -33,8 +44,8 @@ export async function assignJudgeToPanel(judgeId: string, panelId: string) {
   }
 
   try {
-    // Remove from other panels first? Logic says "Each judge belongs to exactly one panel"
-    // So we should delete existing assignments for this judge
+    // BUG: This deletes ALL panel assignments across ALL slots!
+    // This prevents judges from being in multiple panels across different time slots.
     await prisma.panelJudge.deleteMany({
       where: { userId: judgeId },
     });
