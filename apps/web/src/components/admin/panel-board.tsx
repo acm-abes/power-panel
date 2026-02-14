@@ -44,6 +44,7 @@ type Judge = {
   inPanelId?: string;
   inPanelName?: string;
   inPanelSlotId?: string;
+  availableSlotIds: string[]; // Slots they are available for
 };
 
 type Panel = {
@@ -179,13 +180,11 @@ export function PanelBoard({
       ? panels
       : panels.filter((p) => p.slotId === selectedSlotId);
 
-  // Filter judges - only show unassigned judges or judges in panels for the selected slot
+  // Filter judges - only show judges available for the selected slot
   const availableJudges =
     selectedSlotId === "all"
       ? judges
-      : judges.filter(
-          (j) => !j.inPanelSlotId || j.inPanelSlotId === selectedSlotId,
-        );
+      : judges.filter((j) => j.availableSlotIds.includes(selectedSlotId));
 
   // Unassigned submissions
   const unassignedSubmissions = initialSubmissions.filter(

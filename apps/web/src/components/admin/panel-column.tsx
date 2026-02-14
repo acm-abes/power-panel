@@ -41,6 +41,7 @@ type Judge = {
   name: string;
   email: string;
   trackPreferences: { AI: number; Web3: number; Defense: number };
+  availableSlotIds: string[];
 };
 
 type Submission = {

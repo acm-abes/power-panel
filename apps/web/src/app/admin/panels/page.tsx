@@ -122,12 +122,13 @@ export default async function AdminPanelsPage() {
     },
   });
 
-  // Fetch unassigned submissions
+  // Fetch unassigned submissions (not locked and not assigned to any panel)
   const dbUnassignedSubmissions = await prisma.submission.findMany({
     where: {
       assignments: {
         none: {},
       },
+      isLocked: false, // Only show unlocked submissions
     },
     include: {
       team: {
@@ -150,6 +151,7 @@ export default async function AdminPanelsPage() {
         Web3: 0,
         Defense: 0,
       },
+      availableSlotIds: [], // Already assigned judges don't need availability filtering
     }));
 
     const submissions = panel.submissions.map((sa) => ({
@@ -180,6 +182,8 @@ export default async function AdminPanelsPage() {
   // Transform judges for the board
   const judges = dbJudges.map((judge) => {
     const inPanel = judge.panelJudges[0];
+    const availableSlotIds = judge.judgeAvailabilities.map((ja) => ja.slot.id);
+
     return {
       id: judge.id,
       name: judge.name,
@@ -192,6 +196,7 @@ export default async function AdminPanelsPage() {
       inPanelId: inPanel?.panel.id,
       inPanelName: inPanel?.panel.name,
       inPanelSlotId: inPanel?.panel.slotId ?? undefined,
+      availableSlotIds, // Add available slot IDs
     };
   });
 

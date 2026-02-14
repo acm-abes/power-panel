@@ -24,6 +24,7 @@ type Judge = {
   inPanelId?: string;
   inPanelName?: string;
   inPanelSlotId?: string;
+  availableSlotIds: string[];
 };
 
 type JudgePoolProps = {
