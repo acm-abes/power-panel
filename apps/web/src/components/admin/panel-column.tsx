@@ -34,6 +34,7 @@ import {
   togglePanelLock,
   toggleAssignmentLock,
 } from "@/server/actions/admin-allocation";
+import { deletePanel } from "@/server/actions/panels";
 
 type Judge = {
   id: string;
@@ -71,6 +72,7 @@ type PanelColumnProps = {
   onRemoveJudge: (judgeId: string, panelId: string) => void;
   onRemoveSubmission: (submissionId: string, panelId: string) => void;
   onUpdate: (panel: Panel) => void;
+  onDelete?: (panelId: string) => void;
 };
 
 export function PanelColumn({
@@ -78,6 +80,7 @@ export function PanelColumn({
   onRemoveJudge,
   onRemoveSubmission,
   onUpdate,
+  onDelete,
 }: PanelColumnProps) {
   const [isEditingName, setIsEditingName] = useState(false);
   const [editedName, setEditedName] = useState(panel.name);
@@ -146,9 +149,20 @@ export function PanelColumn({
   };
 
   const handleDeletePanel = async () => {
-    // This would call a delete panel action
-    toast.info("Delete panel functionality to be implemented");
+    const result = await deletePanel(panel.id);
+
+    if (result.error) {
+      toast.error(result.error);
+      return;
+    }
+
+    toast.success(`Panel "${panel.name}" deleted successfully`);
     setDeleteDialogOpen(false);
+
+    // Notify parent to remove from state
+    if (onDelete) {
+      onDelete(panel.id);
+    }
   };
 
   return (

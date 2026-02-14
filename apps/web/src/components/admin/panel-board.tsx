@@ -446,6 +446,9 @@ export function PanelBoard({
                       prev.map((p) => (p.id === panel.id ? updatedPanel : p)),
                     );
                   }}
+                  onDelete={(panelId: string) => {
+                    setPanels((prev) => prev.filter((p) => p.id !== panelId));
+                  }}
                 />
               ))
             )}
