@@ -8,14 +8,6 @@ import { getTeamAnalytics } from "@/actions/get-team-analytics";
 import { Page, PageContent, PageHeading } from "@/components/page";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { headers } from "next/headers";
 import { SubmissionForm } from "@/components/submission-form";
 import { SubmissionDetails } from "@/components/submission-details";

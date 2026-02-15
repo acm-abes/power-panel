@@ -29,37 +29,36 @@ export async function getJudgeEvaluationDataAction(slotId: string) {
   try {
     const user = await checkJudge();
 
-    // Get all teams assigned to this judge
-    const judgeAssignments = await prisma.judgeAssignment.findMany({
-      where: { judgeId: user.id },
+    // Get all panels where this judge is assigned in the specified slot
+    const panelJudges = await prisma.panelJudge.findMany({
+      where: {
+        userId: user.id,
+        panel: { slotId }, // Filter by slot directly
+      },
       include: {
-        team: {
+        panel: {
           include: {
-            submission: {
+            submissions: {
               include: {
-                assignments: {
+                submission: {
                   include: {
-                    panel: {
+                    team: {
+                      include: {
+                        evaluations: {
+                          where: {
+                            judgeId: user.id,
+                          },
+                        },
+                      },
+                    },
+                    problemStatement: {
                       select: {
-                        id: true,
-                        name: true,
-                        slotId: true,
-                        slot: true,
+                        title: true,
+                        track: true,
                       },
                     },
                   },
                 },
-                problemStatement: {
-                  select: {
-                    title: true,
-                    track: true,
-                  },
-                },
-              },
-            },
-            evaluations: {
-              where: {
-                judgeId: user.id,
               },
             },
           },
@@ -67,15 +66,25 @@ export async function getJudgeEvaluationDataAction(slotId: string) {
       },
     });
 
-    // Filter teams by slot - only show teams whose submissions are assigned to panels in this slot
-    const teamsInSlot = judgeAssignments.filter((assignment) => {
-      if (!assignment.team.submission) return false;
-
-      // Check if any submission assignment belongs to a panel in this slot
-      return assignment.team.submission.assignments.some(
-        (sa) => sa.panel.slotId === slotId,
-      );
-    });
+    // Extract teams from panels
+    const teams = panelJudges.flatMap((pj) =>
+      pj.panel.submissions.map((sa) => ({
+        id: sa.submission.team.id,
+        name: sa.submission.team.name,
+        teamCode: sa.submission.team.teamCode,
+        submission: {
+          id: sa.submission.id,
+          problemStatement: sa.submission.problemStatement.title,
+          track: sa.submission.problemStatement.track,
+          panelId: pj.panel.id,
+          panelName: pj.panel.name,
+        },
+        hasEvaluation: sa.submission.team.evaluations.length > 0,
+        isSubmitted: sa.submission.team.evaluations.some(
+          (e) => e.submittedAt !== null,
+        ),
+      })),
+    );
 
     // Get slot details
     const slot = await prisma.evaluationSlot.findUnique({
@@ -84,25 +93,7 @@ export async function getJudgeEvaluationDataAction(slotId: string) {
 
     return {
       success: true,
-      teams: teamsInSlot.map((assignment) => ({
-        id: assignment.team.id,
-        name: assignment.team.name,
-        teamCode: assignment.team.teamCode,
-        submission: assignment.team.submission
-          ? {
-              id: assignment.team.submission.id,
-              problemStatement:
-                assignment.team.submission.problemStatement.title,
-              track: assignment.team.submission.problemStatement.track,
-              panelId: assignment.team.submission.assignments[0]?.panel.id,
-              panelName: assignment.team.submission.assignments[0]?.panel.name,
-            }
-          : null,
-        hasEvaluation: assignment.team.evaluations.length > 0,
-        isSubmitted: assignment.team.evaluations.some(
-          (e) => e.submittedAt !== null,
-        ),
-      })),
+      teams,
       slot,
     };
   } catch (error) {
@@ -118,17 +109,24 @@ export async function getTeamEvaluationFormDataAction(
   try {
     const user = await checkJudge();
 
-    // Verify judge is assigned to this team
-    const assignment = await prisma.judgeAssignment.findUnique({
+    // Verify judge is in a panel that contains this team's submission
+    const panelJudge = await prisma.panelJudge.findFirst({
       where: {
-        judgeId_teamId: {
-          judgeId: user.id,
-          teamId,
+        userId: user.id,
+        panel: {
+          slotId,
+          submissions: {
+            some: {
+              submission: {
+                teamId,
+              },
+            },
+          },
         },
       },
     });
 
-    if (!assignment) {
+    if (!panelJudge) {
       return { error: "You are not assigned to evaluate this team" };
     }
 
@@ -269,17 +267,24 @@ export async function submitEvaluationAction(data: {
   try {
     const user = await checkJudge();
 
-    // Verify judge is assigned to this team
-    const assignment = await prisma.judgeAssignment.findUnique({
+    // Verify judge is in a panel that contains this team's submission
+    const panelJudge = await prisma.panelJudge.findFirst({
       where: {
-        judgeId_teamId: {
-          judgeId: user.id,
-          teamId: data.teamId,
+        userId: user.id,
+        panel: {
+          slotId: data.slotId,
+          submissions: {
+            some: {
+              submission: {
+                teamId: data.teamId,
+              },
+            },
+          },
         },
       },
     });
 
-    if (!assignment) {
+    if (!panelJudge) {
       return { error: "You are not assigned to evaluate this team" };
     }
 
