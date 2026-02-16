@@ -54,8 +54,8 @@ export function EvaluationRadarChart({ scores }: EvaluationRadarChartProps) {
             <Radar
               name="Your Score"
               dataKey="score"
-              stroke="hsl(var(--primary))"
-              fill="hsl(var(--primary))"
+              stroke="hsl(var(--accent))"
+              fill="hsl(var(--accent))"
               fillOpacity={0.6}
             />
             <Tooltip

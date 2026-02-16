@@ -12,6 +12,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Page, PageHeading, PageContent } from "@/components/page";
+import { DownloadButton } from "./download-button";
 
 export default async function ResultsPage() {
   const teams = await prisma.team.findMany({
@@ -75,7 +76,10 @@ export default async function ResultsPage() {
       <PageContent>
         <Card>
           <CardHeader>
-            <CardTitle>Rankings</CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle>Rankings</CardTitle>
+              <DownloadButton teamsWithScores={teamsWithScores} />
+            </div>
           </CardHeader>
           <CardContent>
             <Table>
