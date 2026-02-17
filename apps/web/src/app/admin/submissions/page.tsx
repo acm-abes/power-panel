@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/accordion";
 import { FileText, Lock, Unlock, Users, Calendar } from "lucide-react";
 import { ToggleLockButton } from "./toggle-lock-button";
+import { DownloadAllButton } from "./download-all-button";
 
 export default async function AdminSubmissionsPage() {
   const submissions = await getAllSubmissions();
@@ -41,19 +42,22 @@ export default async function AdminSubmissionsPage() {
         }
       />
       <PageContent>
-        <div className="mb-4 flex gap-4">
-          <div className="flex items-center gap-2">
-            <Lock className="h-4 w-4 text-red-600" />
-            <span className="text-sm text-muted-foreground">
-              Locked: {lockedCount}
-            </span>
+        <div className="mb-4 flex gap-4 justify-between items-center">
+          <div className="flex gap-4">
+            <div className="flex items-center gap-2">
+              <Lock className="h-4 w-4 text-red-600" />
+              <span className="text-sm text-muted-foreground">
+                Locked: {lockedCount}
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Unlock className="h-4 w-4 text-green-600" />
+              <span className="text-sm text-muted-foreground">
+                Unlocked: {unlockedCount}
+              </span>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            <Unlock className="h-4 w-4 text-green-600" />
-            <span className="text-sm text-muted-foreground">
-              Unlocked: {unlockedCount}
-            </span>
-          </div>
+          {submissions.length > 0 && <DownloadAllButton />}
         </div>
 
         {submissions.length === 0 ? (
