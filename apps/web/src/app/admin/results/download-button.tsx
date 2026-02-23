@@ -8,6 +8,7 @@ import * as XLSX from "xlsx";
 type TeamScore = {
   id: string;
   name: string;
+  teamCode: string;
   evaluationCount: number;
   averageScore: number;
   totalScore: number;
@@ -48,6 +49,7 @@ export function DownloadButton({ teamsWithScores }: DownloadButtonProps) {
     const rankingsData = teamsWithScores.map((team, index) => ({
       Rank: index + 1,
       "Team Name": team.name,
+      "Team Code": team.teamCode,
       Members: team.members.length,
       "Number of Evaluations": team.evaluationCount,
       "Average Score": parseFloat(team.averageScore.toFixed(2)),
@@ -103,6 +105,7 @@ export function DownloadButton({ teamsWithScores }: DownloadButtonProps) {
 
         const row: any = {
           "Team Name": team.name,
+          "Team Code": team.teamCode,
           "Judge Name": evaluation.judge.name,
           "Total Score": evalTotal + evaluation.extraPoints,
         };
@@ -136,6 +139,7 @@ export function DownloadButton({ teamsWithScores }: DownloadButtonProps) {
       team.members.forEach((member) => {
         membersData.push({
           "Team Name": team.name,
+          "Team Code": team.teamCode,
           "Member Name": member.user.name,
           "Member Email": member.user.email,
         });

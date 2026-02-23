@@ -37,6 +37,11 @@ export default async function ResultsPage() {
           user: true,
         },
       },
+      submission: {
+        include: {
+          problemStatement: true,
+        },
+      },
     },
     orderBy: {
       name: "asc",
@@ -87,6 +92,7 @@ export default async function ResultsPage() {
                 <TableRow>
                   <TableHead>Rank</TableHead>
                   <TableHead>Team</TableHead>
+                  <TableHead>Team Code</TableHead>
                   <TableHead>Track</TableHead>
                   <TableHead>Evaluations</TableHead>
                   <TableHead>Average Score</TableHead>
@@ -97,7 +103,7 @@ export default async function ResultsPage() {
                 {teamsWithScores.length === 0 ? (
                   <TableRow>
                     <TableCell
-                      colSpan={6}
+                      colSpan={7}
                       className="text-center text-muted-foreground"
                     >
                       No evaluation data available
@@ -128,6 +134,22 @@ export default async function ResultsPage() {
                             {team.members.length !== 1 ? "s" : ""}
                           </div>
                         </div>
+                      </TableCell>
+                      <TableCell>
+                        <code className="text-sm font-mono bg-muted px-2 py-1 rounded">
+                          {team.teamCode}
+                        </code>
+                      </TableCell>
+                      <TableCell>
+                        {team.submission?.problemStatement?.track ? (
+                          <Badge variant="outline">
+                            {team.submission.problemStatement.track}
+                          </Badge>
+                        ) : (
+                          <span className="text-muted-foreground text-sm">
+                            N/A
+                          </span>
+                        )}
                       </TableCell>
                       <TableCell>
                         <Badge
