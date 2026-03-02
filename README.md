@@ -379,4 +379,4 @@ This project is maintained by ABES ACM Student Chapter and ABES ACM-W Student Ch
 
 ---
 
-**Built with ❤️ by Kunal Rana, Web Master ABES ACM Student Chapter**
+**Built with ❤️ by [Kunal Rana](https://github.com/halomanlodestar), Web Master ABES ACM Student Chapter**
