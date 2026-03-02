@@ -59,7 +59,7 @@ Power Panel is a centralized platform that brings together organizers, judges, m
 - **Recharts** - Analytics visualization
 - **dnd-kit** - Drag and drop functionality
 - **Shadcn/ui** - Component library
-- **Phosphor Icons** - Icon set
+- **Lucide Icons** - Icon set
 
 ### Backend & Services
 
@@ -79,7 +79,6 @@ Power Panel is a centralized platform that brings together organizers, judges, m
 
 - **ESLint** - Code linting
 - **Monorepo** with Bun workspaces
-- **tsx** - TypeScript execution
 
 ## Architecture
 
