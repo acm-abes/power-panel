@@ -78,7 +78,7 @@ Power Panel is a centralized platform that brings together organizers, judges, m
 ### Developer Tools
 
 - **ESLint** - Code linting
-- **Monorepo** with pnpm workspaces
+- **Monorepo** with Bun workspaces
 - **tsx** - TypeScript execution
 
 ## Architecture
@@ -379,4 +379,4 @@ This project is maintained by ABES ACM Student Chapter and ABES ACM-W Student Ch
 
 ---
 
-**Built with ❤️ by the ABES ACM Community**
+**Built with ❤️ by Kunal Rana, Web Master ABES ACM Student Chapter**
